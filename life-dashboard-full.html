@@ -1,0 +1,4230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Life Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Instrument+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #f4f1ec;
+  --surface: #fdfcfa;
+  --surface2: #f0ede7;
+  --border: #e3ddd4;
+  --text: #1c1a17;
+  --text2: #6b6660;
+  --text3: #a09b95;
+  --accent: #3d6b52;
+  --accent-light: #eaf2ed;
+  --accent2: #8b5e3c;
+  --accent2-light: #f5ede6;
+  --blue: #3a5f8a;
+  --blue-light: #e8eef5;
+  --red: #b94040;
+  --yellow: #c8951a;
+  --yellow-light: #fdf5e6;
+  --radius: 14px;
+  --shadow: 0 1px 2px rgba(0,0,0,0.05), 0 4px 12px rgba(0,0,0,0.05);
+  --sidebar-w: 220px;
+  --transition: 0.2s ease;
+}
+
+.dark {
+  --bg: #161412;
+  --surface: #1f1c19;
+  --surface2: #2a2621;
+  --border: #332f2a;
+  --text: #f0ece5;
+  --text2: #9e9890;
+  --text3: #5e5a55;
+  --accent: #5a9970;
+  --accent-light: #1a2e22;
+  --accent2: #c47d52;
+  --accent2-light: #2a1e16;
+  --blue: #5b84b8;
+  --blue-light: #131e2a;
+  --red: #d45f5f;
+  --yellow: #d4a83a;
+  --yellow-light: #231c0d;
+  --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 4px 12px rgba(0,0,0,0.2);
+}
+
+body {
+  font-family: 'Instrument Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  transition: background var(--transition), color var(--transition);
+}
+
+/* ── SIDEBAR ─────────────────────────────── */
+.sidebar {
+  width: var(--sidebar-w);
+  height: 100vh;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0; left: 0;
+  transition: background var(--transition), border-color var(--transition);
+  z-index: 100;
+  overflow: hidden;
+}
+
+.sidebar-logo {
+  padding: 28px 20px 28px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.sidebar-logo h1 {
+  font-family: 'Fraunces', serif;
+  font-size: 1.35rem;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.sidebar-logo .tagline {
+  font-size: 0.72rem;
+  color: var(--text3);
+  margin-top: 3px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.nav-section {
+  padding: 0 12px;
+  margin-bottom: 6px;
+}
+.sidebar-nav-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 0 8px;
+}
+.sidebar-nav-scroll::-webkit-scrollbar { width: 3px; }
+.sidebar-nav-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+.nav-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text3);
+  padding: 0 8px;
+  margin-bottom: 4px;
+  margin-top: 12px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: 9px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 400;
+  color: var(--text2);
+  transition: all var(--transition);
+  border: 1px solid transparent;
+  user-select: none;
+}
+
+.nav-item:hover { background: var(--surface2); color: var(--text); }
+
+.nav-item.active {
+  background: var(--accent-light);
+  color: var(--accent);
+  font-weight: 500;
+  border-color: transparent;
+}
+
+.nav-icon { font-size: 1rem; width: 20px; text-align: center; flex-shrink: 0; }
+
+.sidebar-footer {
+  flex-shrink: 0;
+  padding: 16px 20px 20px;
+  border-top: 1px solid var(--border);
+}
+
+.dark-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: var(--text2);
+  cursor: pointer;
+}
+
+.toggle-switch {
+  width: 36px; height: 20px;
+  background: var(--border);
+  border-radius: 100px;
+  position: relative;
+  transition: background var(--transition);
+  flex-shrink: 0;
+}
+
+.toggle-switch.on { background: var(--accent); }
+
+.toggle-knob {
+  position: absolute;
+  top: 3px; left: 3px;
+  width: 14px; height: 14px;
+  background: white;
+  border-radius: 50%;
+  transition: transform var(--transition);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.toggle-switch.on .toggle-knob { transform: translateX(16px); }
+
+/* ── MAIN ────────────────────────────────── */
+.main {
+  margin-left: var(--sidebar-w);
+  flex: 1;
+  min-height: 100vh;
+  padding: 36px 32px;
+  max-width: calc(100vw - var(--sidebar-w));
+}
+
+.page { display: none; animation: fadeIn 0.25s ease both; }
+.page.active { display: block; }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+.page-header {
+  margin-bottom: 28px;
+}
+
+.page-header h2 {
+  font-family: 'Fraunces', serif;
+  font-size: 2rem;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.page-header .sub {
+  font-size: 0.82rem;
+  color: var(--text3);
+  margin-top: 5px;
+}
+
+/* ── CARDS ───────────────────────────────── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 22px;
+  box-shadow: var(--shadow);
+  transition: background var(--transition), border-color var(--transition);
+}
+
+.card-title {
+  font-family: 'Fraunces', serif;
+  font-size: 1.05rem;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+.gap-18 { display: flex; flex-direction: column; gap: 18px; }
+
+/* ── STAT PILL ───────────────────────────── */
+.stat-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.stat-pill {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 18px;
+  box-shadow: var(--shadow);
+}
+
+.stat-pill .val {
+  font-family: 'Fraunces', serif;
+  font-size: 1.8rem;
+  font-weight: 300;
+  line-height: 1;
+  color: var(--accent);
+}
+
+.stat-pill .lbl {
+  font-size: 0.7rem;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 5px;
+}
+
+/* ── SHARED INPUTS ───────────────────────── */
+.inp {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-family: 'Instrument Sans', sans-serif;
+  font-size: 0.84rem;
+  background: var(--surface2);
+  color: var(--text);
+  outline: none;
+  transition: border-color var(--transition), background var(--transition);
+  width: 100%;
+}
+
+.inp:focus { border-color: var(--accent); background: var(--surface); }
+
+.btn {
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-family: 'Instrument Sans', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity var(--transition);
+  white-space: nowrap;
+}
+
+.btn:hover { opacity: 0.85; }
+
+.btn-ghost {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-family: 'Instrument Sans', sans-serif;
+  font-size: 0.78rem;
+  color: var(--text2);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.btn-ghost:hover { background: var(--surface2); color: var(--text); }
+
+.btn-sm {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-family: 'Instrument Sans', sans-serif;
+  font-size: 0.74rem;
+  color: var(--text2);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.btn-sm:hover { background: var(--accent-light); color: var(--accent); border-color: var(--accent); }
+
+.del-btn {
+  background: none; border: none;
+  color: var(--text3); cursor: pointer;
+  font-size: 0.75rem; padding: 2px 5px;
+  transition: color var(--transition);
+}
+.del-btn:hover { color: var(--red); }
+
+.row { display: flex; gap: 8px; align-items: center; }
+.flex1 { flex: 1; }
+.mt10 { margin-top: 10px; }
+.mt14 { margin-top: 14px; }
+
+/* ── HABITS ──────────────────────────────── */
+.habit-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 10px; border-radius: 9px;
+  transition: background var(--transition);
+}
+.habit-row:hover { background: var(--surface2); }
+
+.check-box {
+  width: 20px; height: 20px;
+  border-radius: 5px;
+  border: 1.5px solid var(--border);
+  background: var(--surface2);
+  cursor: pointer; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  transition: all var(--transition);
+}
+.check-box.on { background: var(--accent); border-color: var(--accent); }
+.check-box.on::after {
+  content: '';
+  width: 9px; height: 5px;
+  border-left: 2px solid white;
+  border-bottom: 2px solid white;
+  transform: rotate(-45deg) translateY(-1px);
+  display: block;
+}
+.habit-name { flex: 1; font-size: 0.86rem; }
+.habit-name.done { color: var(--text3); text-decoration: line-through; }
+.dots { display: flex; gap: 3px; }
+.dot { width: 5px; height: 5px; border-radius: 50%; background: var(--border); }
+.dot.on { background: var(--accent); }
+.streak-tag {
+  font-size: 0.72rem; color: var(--text3);
+}
+
+/* ── GOALS ───────────────────────────────── */
+.goal-item {
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  padding: 14px 16px;
+  transition: border-color var(--transition);
+}
+.goal-item:hover { border-color: var(--accent); }
+
+.goal-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 9px; }
+.goal-name { font-size: 0.86rem; font-weight: 500; }
+.goal-pct { font-size: 0.76rem; color: var(--accent); font-weight: 600; }
+.bar-bg { height: 4px; background: var(--border); border-radius: 100px; overflow: hidden; }
+.bar-fill { height: 100%; background: var(--accent); border-radius: 100px; transition: width 0.5s ease; }
+.goal-meta { display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--text3); margin-top: 7px; }
+.goal-controls { display: flex; gap: 5px; margin-top: 9px; }
+
+/* ── WORKOUT ─────────────────────────────── */
+.workout-log { display: flex; flex-direction: column; gap: 10px; }
+.workout-entry {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+.workout-header { display: flex; justify-content: space-between; align-items: center; }
+.workout-type {
+  font-size: 0.82rem; font-weight: 600;
+  background: var(--accent-light);
+  color: var(--accent);
+  padding: 3px 9px; border-radius: 6px;
+}
+.workout-date { font-size: 0.72rem; color: var(--text3); }
+.workout-details { display: flex; gap: 14px; margin-top: 8px; flex-wrap: wrap; }
+.workout-stat { font-size: 0.78rem; color: var(--text2); }
+.workout-stat span { font-weight: 600; color: var(--text); }
+
+/* ── WEIGHT ──────────────────────────────── */
+.weight-log { display: flex; flex-direction: column; gap: 8px; max-height: 240px; overflow-y: auto; }
+.weight-entry {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--surface2);
+  font-size: 0.83rem;
+}
+.weight-val { font-weight: 600; font-family: 'Fraunces', serif; font-size: 1rem; }
+.weight-trend { font-size: 0.72rem; }
+.trend-up { color: var(--red); }
+.trend-down { color: var(--accent); }
+
+/* ── FINANCE ─────────────────────────────── */
+.expense-list { display: flex; flex-direction: column; gap: 7px; max-height: 280px; overflow-y: auto; }
+.expense-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 12px;
+  border-radius: 9px;
+  background: var(--surface2);
+  font-size: 0.83rem;
+  transition: background var(--transition);
+}
+.expense-cat {
+  width: 28px; height: 28px; border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.9rem; flex-shrink: 0;
+}
+.expense-desc { flex: 1; }
+.expense-date { font-size: 0.72rem; color: var(--text3); }
+.expense-amt { font-weight: 600; font-size: 0.9rem; }
+.expense-amt.neg { color: var(--red); }
+
+.budget-bars { display: flex; flex-direction: column; gap: 12px; }
+.budget-row { }
+.budget-top { display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 5px; }
+.budget-cat { font-weight: 500; }
+.budget-nums { color: var(--text2); font-size: 0.75rem; }
+.bbar-bg { height: 6px; background: var(--border); border-radius: 100px; overflow: hidden; }
+.bbar-fill { height: 100%; border-radius: 100px; transition: width 0.5s ease; }
+.bbar-ok { background: var(--accent); }
+.bbar-warn { background: var(--yellow); }
+.bbar-over { background: var(--red); }
+
+.savings-list { display: flex; flex-direction: column; gap: 12px; }
+.savings-item { border: 1px solid var(--border); border-radius: 10px; padding: 13px 15px; }
+.savings-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 9px; }
+.savings-name { font-size: 0.86rem; font-weight: 500; }
+.savings-emoji { font-size: 1.1rem; }
+.savings-bar { height: 5px; background: var(--border); border-radius: 100px; overflow: hidden; margin-bottom: 7px; }
+.savings-fill { height: 100%; background: var(--blue); border-radius: 100px; transition: width 0.5s ease; }
+.savings-meta { display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--text3); }
+
+/* ── DATES ───────────────────────────────── */
+.dates-list { display: flex; flex-direction: column; gap: 10px; }
+.date-item {
+  display: flex; align-items: center; gap: 14px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  transition: border-color var(--transition);
+}
+.date-countdown {
+  text-align: center; flex-shrink: 0; min-width: 50px;
+}
+.date-days {
+  font-family: 'Fraunces', serif;
+  font-size: 1.5rem; font-weight: 300;
+  line-height: 1;
+  color: var(--accent);
+}
+.date-days.soon { color: var(--yellow); }
+.date-days.past { color: var(--text3); }
+.date-unit { font-size: 0.65rem; color: var(--text3); text-transform: uppercase; letter-spacing: 0.04em; }
+.date-info { flex: 1; }
+.date-name { font-size: 0.86rem; font-weight: 500; }
+.date-when { font-size: 0.73rem; color: var(--text3); margin-top: 2px; }
+.date-emoji { font-size: 1.2rem; }
+
+/* ── READING ─────────────────────────────── */
+.reading-list { display: flex; flex-direction: column; gap: 8px; }
+.reading-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 12px;
+  border-radius: 9px;
+  background: var(--surface2);
+  transition: background var(--transition);
+}
+.reading-item:hover { background: var(--border); }
+.reading-status {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+}
+.status-reading { background: var(--accent); }
+.status-want { background: var(--border); }
+.status-done { background: var(--text3); }
+.reading-title { flex: 1; font-size: 0.84rem; font-weight: 500; }
+.reading-author { font-size: 0.74rem; color: var(--text3); }
+.reading-type {
+  font-size: 0.68rem;
+  padding: 2px 7px;
+  border-radius: 5px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text3);
+  flex-shrink: 0;
+}
+.reading-filters { display: flex; gap: 6px; margin-bottom: 12px; }
+.filter-btn {
+  font-size: 0.74rem;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: none;
+  color: var(--text2);
+  cursor: pointer;
+  font-family: 'Instrument Sans', sans-serif;
+  transition: all var(--transition);
+}
+.filter-btn.active { background: var(--accent-light); color: var(--accent); border-color: transparent; }
+
+/* ── NOTES ───────────────────────────────── */
+.notes-area {
+  width: 100%; min-height: 200px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  font-family: 'Instrument Sans', sans-serif;
+  font-size: 0.86rem;
+  background: var(--surface2);
+  color: var(--text);
+  resize: vertical;
+  outline: none;
+  line-height: 1.6;
+  transition: border-color var(--transition), background var(--transition);
+}
+.notes-area:focus { border-color: var(--accent); background: var(--surface); }
+.notes-saved { font-size: 0.73rem; color: var(--text3); margin-top: 6px; }
+
+/* ── OVERVIEW ────────────────────────────── */
+.overview-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.overview-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  cursor: pointer;
+  transition: all var(--transition);
+  box-shadow: var(--shadow);
+}
+.overview-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+}
+.ov-icon { font-size: 1.6rem; margin-bottom: 10px; }
+.ov-title { font-family: 'Fraunces', serif; font-size: 1rem; font-weight: 400; margin-bottom: 4px; }
+.ov-sub { font-size: 0.76rem; color: var(--text3); }
+.ov-metric {
+  margin-top: 12px;
+  font-size: 0.78rem;
+  color: var(--text2);
+  display: flex; gap: 8px; flex-wrap: wrap;
+}
+.ov-tag {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 2px 8px;
+}
+
+/* ── SYNC PANEL ──────────────────────────── */
+.grocery-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 2px;
+  border-bottom: 1px solid var(--border);
+  transition: opacity 0.15s;
+}
+.grocery-item:last-child { border-bottom: none; }
+.grocery-item.checked { opacity: 0.45; }
+.grocery-check {
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  flex-shrink: 0;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.7rem;
+  transition: all 0.15s;
+  background: var(--surface2);
+}
+.grocery-check.on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+.grocery-item-name { flex: 1; font-size: 0.86rem; }
+.grocery-item-name.crossed { text-decoration: line-through; color: var(--text3); }
+.grocery-item-qty { font-size: 0.75rem; color: var(--text3); flex-shrink: 0; }
+
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: var(--text);
+  color: var(--surface);
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.18);
+  transition: transform 0.25s cubic-bezier(.34,1.56,.64,1);
+  z-index: 9999;
+  white-space: nowrap;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+.toast-undo {
+  background: none;
+  border: 1px solid rgba(255,255,255,0.35);
+  color: inherit;
+  border-radius: 6px;
+  padding: 3px 10px;
+  font-size: 0.78rem;
+  cursor: pointer;
+  font-family: inherit;
+}
+.toast-undo:hover { background: rgba(255,255,255,0.15); }
+
+.sync-panel {
+  flex-shrink: 0;
+  padding: 12px 20px 14px;
+  border-top: 1px solid var(--border);
+  overflow-y: auto;
+  max-height: 280px;
+}
+.sync-panel::-webkit-scrollbar { width: 3px; }
+.sync-panel::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+.sync-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text3);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.sync-status {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.7rem;
+  color: var(--text3);
+  margin-bottom: 8px;
+}
+.sync-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--border);
+  flex-shrink: 0;
+}
+.sync-dot.ok { background: var(--accent); }
+.sync-dot.busy { background: var(--yellow); animation: pulse 1s infinite; }
+.sync-dot.err { background: var(--red); }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+.sync-input-row { display: flex; gap: 6px; margin-bottom: 6px; }
+.sync-inp {
+  flex: 1;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 6px 9px;
+  font-family: 'Instrument Sans', sans-serif;
+  font-size: 0.75rem;
+  background: var(--surface2);
+  color: var(--text);
+  outline: none;
+  min-width: 0;
+}
+.sync-inp:focus { border-color: var(--accent); }
+.sync-btn {
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 7px;
+  padding: 6px 10px;
+  font-size: 0.72rem;
+  font-family: 'Instrument Sans', sans-serif;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.15s;
+}
+.sync-btn:hover { opacity: 0.85; }
+.sync-btn.ghost {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text2);
+}
+.sync-btn.ghost:hover { background: var(--surface2); opacity: 1; }
+.sync-msg {
+  font-size: 0.7rem;
+  color: var(--text3);
+  min-height: 14px;
+  margin-top: 2px;
+}
+
+/* scrollbar */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+
+/* add form reveal */
+.collapsible { display: none; }
+.collapsible.open { display: flex; flex-direction: column; gap: 8px; padding-top: 14px; margin-top: 14px; border-top: 1px solid var(--border); animation: fadeIn 0.2s ease; }
+
+select.inp {
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+
+/* ── MOBILE NAV ──────────────────────────── */
+.mobile-nav {
+  display: none;
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  z-index: 200;
+  padding: 6px 0 env(safe-area-inset-bottom, 6px);
+}
+
+.mobile-nav-items {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.mob-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 8px;
+  cursor: pointer;
+  border-radius: 10px;
+  transition: all var(--transition);
+  min-width: 48px;
+}
+
+.mob-nav-item .mob-icon { font-size: 1.1rem; line-height: 1; }
+.mob-nav-item .mob-label { font-size: 0.6rem; color: var(--text3); letter-spacing: 0.02em; }
+.mob-nav-item.active .mob-label { color: var(--accent); }
+.mob-nav-item.active .mob-icon { transform: scale(1.15); }
+
+.mob-more-btn {
+  font-size: 1.3rem;
+  cursor: pointer;
+  padding: 6px 8px;
+  color: var(--text2);
+}
+
+/* Mobile drawer for extra nav items */
+.mob-drawer {
+  display: none;
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  border-radius: 20px 20px 0 0;
+  z-index: 300;
+  padding: 16px 20px env(safe-area-inset-bottom, 20px);
+  transform: translateY(100%);
+  transition: transform 0.3s ease;
+}
+.mob-drawer.open { transform: translateY(0); }
+.mob-drawer-handle {
+  width: 36px; height: 4px;
+  background: var(--border);
+  border-radius: 100px;
+  margin: 0 auto 16px;
+}
+.mob-drawer-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.mob-drawer-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 12px 8px;
+  border-radius: 12px;
+  background: var(--surface2);
+  cursor: pointer;
+  transition: background var(--transition);
+}
+.mob-drawer-item:hover, .mob-drawer-item.active { background: var(--accent-light); }
+.mob-drawer-item .d-icon { font-size: 1.2rem; }
+.mob-drawer-item .d-label { font-size: 0.72rem; color: var(--text2); text-align: center; }
+.mob-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.3);
+  z-index: 250;
+}
+.mob-overlay.open { display: block; }
+
+@media (max-width: 700px) {
+  .sidebar { display: none; }
+  .main {
+    margin-left: 0;
+    max-width: 100vw;
+    padding: 20px 16px 90px;
+  }
+  .grid-2, .grid-3 { grid-template-columns: 1fr; }
+  .overview-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+  .stat-row { grid-template-columns: repeat(2, 1fr); }
+  .mobile-nav { display: block; }
+  .mob-drawer { display: block; }
+  .page-header h2 { font-size: 1.6rem; }
+}
+
+@media (max-width: 420px) {
+  .overview-grid { grid-template-columns: 1fr; }
+}
+
+
+/* ── BMI ─────────────────────────────────── */
+.bmi-gauge-wrap {
+  position: relative;
+  width: 160px; height: 80px;
+  margin-bottom: 12px;
+}
+.bmi-gauge-svg { width: 160px; height: 80px; }
+.bmi-number {
+  font-family: 'Fraunces', serif;
+  font-size: 2.4rem;
+  font-weight: 300;
+  line-height: 1;
+  text-align: center;
+}
+.bmi-category {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-align: center;
+  margin-top: 4px;
+}
+.bmi-from-weight {
+  font-size: 0.72rem;
+  color: var(--text3);
+  text-align: center;
+  margin-top: 6px;
+}
+.bmi-scale-row {
+  display: flex;
+  height: 8px;
+  border-radius: 100px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+.bmi-scale-seg { height: 100%; }
+.bmi-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.bmi-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.72rem;
+  color: var(--text2);
+}
+.bmi-legend-dot {
+  width: 8px; height: 8px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.bmi-no-data {
+  text-align: center;
+  color: var(--text3);
+  font-size: 0.84rem;
+  padding: 20px 0;
+}
+
+.field-label { font-size:0.75rem; color:var(--text3); margin-bottom:5px; }
+
+/* ── BUDGET SHEET ───────────────────────── */
+.budget-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.budget-pills {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.budget-pill {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 5px 14px;
+  font-size: 0.78rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 90px;
+  box-shadow: var(--shadow);
+}
+.budget-pill-label { font-size: 0.62rem; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 2px; }
+.budget-pill-val { font-family: 'Fraunces', serif; font-size: 1rem; font-weight: 300; }
+
+.budget-sheet {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+.bsheet-header {
+  display: grid;
+  grid-template-columns: 1fr 110px 110px 110px;
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+  padding: 0;
+}
+.bsheet-header > div {
+  padding: 8px 12px;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text3);
+  font-weight: 600;
+}
+.bsheet-header > div:not(:first-child) { text-align: right; border-left: 1px solid var(--border); }
+
+.bgroup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+  padding: 6px 12px;
+  cursor: pointer;
+  user-select: none;
+}
+.bgroup-name {
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text2);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.bgroup-totals {
+  display: flex;
+  gap: 0;
+}
+.bgroup-total-cell {
+  width: 110px;
+  text-align: right;
+  font-size: 0.76rem;
+  font-weight: 600;
+  padding: 0 12px;
+}
+
+.bcat-row {
+  display: grid;
+  grid-template-columns: 1fr 110px 110px 110px;
+  border-bottom: 1px solid var(--border);
+  transition: background var(--transition);
+}
+.bcat-row:hover { background: var(--surface2); }
+.bcat-row:last-child { border-bottom: none; }
+
+.bcol-cat {
+  padding: 10px 12px 10px 28px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.84rem;
+}
+.bcol-assigned, .bcol-activity, .bcol-available {
+  padding: 6px 8px;
+  text-align: right;
+  border-left: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+.bassigned-input {
+  width: 100%;
+  text-align: right;
+  background: none;
+  border: none;
+  font-size: 0.84rem;
+  font-family: inherit;
+  color: var(--text);
+  padding: 4px 2px;
+  border-radius: 4px;
+  outline: none;
+  cursor: pointer;
+}
+.bassigned-input:focus {
+  background: var(--surface);
+  border: 1px solid var(--accent);
+  cursor: text;
+  padding: 3px 2px;
+}
+.bavail-pos { color: var(--accent); font-weight: 600; font-size: 0.84rem; }
+.bavail-neg { color: var(--red); font-weight: 600; font-size: 0.84rem; }
+.bavail-zero { color: var(--text3); font-size: 0.84rem; }
+.bact-val { font-size: 0.84rem; color: var(--red); }
+.bcat-del { opacity: 0; background: none; border: none; cursor: pointer; color: var(--text3); font-size: 0.75rem; padding: 2px 4px; margin-left: 4px; border-radius: 3px; transition: opacity 0.15s; }
+.bcat-row:hover .bcat-del { opacity: 1; }
+.bcat-row:hover .bcat-del:hover { color: var(--red); }
+
+@media (max-width: 700px) {
+  .bsheet-header { grid-template-columns: 1fr 80px 80px 80px; }
+  .bcat-row { grid-template-columns: 1fr 80px 80px 80px; }
+  .bgroup-total-cell { width: 80px; }
+  .bcol-cat { padding-left: 16px; }
+  .budget-pill { min-width: 72px; }
+}
+
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <h1>Life<br><em>Dashboard</em></h1>
+    <div class="tagline" id="sidebarDate"></div>
+  </div>
+
+  <div class="sidebar-nav-scroll">
+  <nav class="nav-section">
+    <div class="nav-label">Overview</div>
+    <div class="nav-item active" data-page="overview">
+      <span class="nav-icon">⊞</span> Home
+    </div>
+  </nav>
+
+  <nav class="nav-section">
+    <div class="nav-label">Personal</div>
+    <div class="nav-item" data-page="habits">
+      <span class="nav-icon">✦</span> Habits & Goals
+    </div>
+    <div class="nav-item" data-page="dates">
+      <span class="nav-icon">◎</span> Important Dates
+    </div>
+    <div class="nav-item" data-page="reading">
+      <span class="nav-icon">◫</span> Reading List
+    </div>
+  </nav>
+
+  <nav class="nav-section">
+    <div class="nav-label">Health</div>
+    <div class="nav-item" data-page="workout">
+      <span class="nav-icon">◈</span> Workouts
+    </div>
+    <div class="nav-item" data-page="weight">
+      <span class="nav-icon">◉</span> Body Stats
+    </div>
+  </nav>
+
+  <nav class="nav-section">
+    <div class="nav-label">Finance</div>
+    <div class="nav-item" data-page="accounts">
+      <span class="nav-icon">◈</span> Accounts
+    </div>
+    <div class="nav-item" data-page="transactions">
+      <span class="nav-icon">↕</span> Transactions
+    </div>
+    <div class="nav-item" data-page="budget">
+      <span class="nav-icon">▦</span> Budget
+    </div>
+    <div class="nav-item" data-page="savings">
+      <span class="nav-icon">◬</span> Savings Goals
+    </div>
+    <div class="nav-item" data-page="reports">
+      <span class="nav-icon">⊞</span> Reports
+    </div>
+  </nav>
+
+  <nav class="nav-section">
+    <div class="nav-label">Tools</div>
+    <div class="nav-item" data-page="grocery">
+      <span class="nav-icon">🛒</span> Grocery List
+    </div>
+    <div class="nav-item" data-page="notes">
+      <span class="nav-icon">⊡</span> Notes
+    </div>
+  </nav>
+
+  </div><!-- /sidebar-nav-scroll -->
+  <div class="sync-panel">
+    <div class="sync-label">
+      Data &amp; Sync
+      <div class="sync-status"><div class="sync-dot" id="syncDot"></div><span id="syncStatusText">Local only</span></div>
+    </div>
+
+    <!-- Export / Import — always works -->
+    <div style="display:flex;gap:5px;margin-bottom:8px">
+      <button class="sync-btn" style="flex:1;font-size:0.7rem" onclick="exportData()">↓ Export</button>
+      <button class="sync-btn ghost" style="flex:1;font-size:0.7rem" onclick="document.getElementById('importFile').click()">↑ Import</button>
+      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+    </div>
+
+    <!-- JSONBin cloud sync -->
+    <div style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.07em;color:var(--text3);margin-bottom:5px">Cloud Sync (JSONBin)</div>
+    <div id="syncSetup">
+      <div id="fileUrlWarning" style="display:none;font-size:0.69rem;background:#fff3cd;color:#7a5c00;border-radius:5px;padding:5px 7px;margin-bottom:6px;line-height:1.4">
+        ⚠️ Open this file via a local server (not file://) for cloud sync to work.
+        <a href="https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer" target="_blank" style="color:#7a5c00;text-decoration:underline">VS Code Live Server</a> works great.
+      </div>
+      <input class="sync-inp" id="apiKeyInput" placeholder="JSONBin Master Key ($2a$10…)" style="margin-bottom:4px;font-size:0.69rem">
+      <div class="sync-input-row" style="margin-bottom:4px">
+        <input class="sync-inp" id="binIdInput" placeholder="Bin ID (existing)">
+        <button class="sync-btn" style="font-size:0.7rem" onclick="connectBin()">Link</button>
+      </div>
+      <button class="sync-btn ghost" style="width:100%;font-size:0.7rem" onclick="createBin()">✦ Create new bin</button>
+      <div class="sync-msg" id="syncMsg"></div>
+    </div>
+    <div id="syncConnected" style="display:none">
+      <div style="font-size:0.7rem;color:var(--text3);margin-bottom:5px">
+        Bin: <span style="font-weight:600;color:var(--text2)" id="syncBinDisplay"></span>
+      </div>
+      <div style="display:flex;gap:5px">
+        <button class="sync-btn" style="flex:1;font-size:0.7rem" onclick="pushData()">↑ Push</button>
+        <button class="sync-btn" style="flex:1;font-size:0.7rem" onclick="pullData()">↓ Pull</button>
+        <button class="sync-btn ghost" style="font-size:0.7rem" onclick="disconnectBin()" title="Disconnect">✕</button>
+      </div>
+      <div class="sync-msg" id="syncMsg2"></div>
+    </div>
+  </div>
+
+  <div class="sidebar-footer">
+    <div class="dark-toggle" onclick="toggleDark()">
+      <span>Dark mode</span>
+      <div class="toggle-switch" id="darkSwitch"><div class="toggle-knob"></div></div>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- OVERVIEW -->
+  <div class="page active" id="page-overview">
+    <div class="page-header">
+      <h2>Good <span id="timeGreet"></span></h2>
+      <div class="sub">Here's your life at a glance</div>
+    </div>
+    <div class="overview-grid" id="overviewGrid"></div>
+
+  </div>
+
+  <!-- HABITS & GOALS -->
+  <div class="page" id="page-habits">
+    <div class="page-header">
+      <h2>Habits & Goals</h2>
+      <div class="sub">Build consistency, track your progress</div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">Daily Habits</div>
+        <div id="habitsList"></div>
+        <div class="row mt14">
+          <input class="inp flex1" id="habitInput" placeholder="New habit…" maxlength="40">
+          <button class="btn" onclick="addHabit()">Add</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">
+          Goals & Milestones
+          <button class="btn-ghost" onclick="toggle('addGoalForm')">+ New</button>
+        </div>
+        <div id="goalsList" class="gap-18"></div>
+        <div class="collapsible" id="addGoalForm">
+          <input class="inp" id="goalName" placeholder="Goal name…" maxlength="50">
+          <div class="row">
+            <input class="inp flex1" id="goalTarget" type="number" placeholder="Target" min="1">
+            <input class="inp flex1" id="goalUnit" placeholder="Unit (e.g. books)" maxlength="20">
+          </div>
+          <button class="btn" onclick="addGoal()">Create Goal</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WORKOUT -->
+  <div class="page" id="page-workout">
+    <div class="page-header">
+      <h2>Workouts</h2>
+      <div class="sub">Log and review your training sessions</div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">
+          Log Workout
+        </div>
+        <div class="gap-18">
+          <div>
+            <div style="font-size:0.75rem;color:var(--text3);margin-bottom:5px;">Type</div>
+            <div style="display:flex;gap:6px">
+              <select class="inp flex1" id="wType" onchange="document.getElementById('wTypeCustom').style.display=this.value==='Custom'?'block':'none'">
+                <option>Running</option><option>Cycling</option><option>Weights</option>
+                <option>Swimming</option><option>Yoga</option><option>HIIT</option><option>Walking</option><option>Custom</option>
+              </select>
+              <input class="inp flex1" id="wTypeCustom" placeholder="Type name…" maxlength="30" style="display:none">
+            </div>
+          </div>
+          <div class="row">
+            <div class="flex1">
+              <div style="font-size:0.75rem;color:var(--text3);margin-bottom:5px;">Duration (min)</div>
+              <input class="inp" id="wDuration" type="number" placeholder="45" min="1">
+            </div>
+            <div class="flex1">
+              <div style="font-size:0.75rem;color:var(--text3);margin-bottom:5px;">Distance (mi)</div>
+              <input class="inp" id="wDist" type="number" placeholder="Optional" step="0.1" min="0">
+            </div>
+          </div>
+          <div>
+            <div style="font-size:0.75rem;color:var(--text3);margin-bottom:5px;">Notes</div>
+            <input class="inp" id="wNotes" placeholder="How did it feel?" maxlength="80">
+          </div>
+          <button class="btn" onclick="addWorkout()">Log Session</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Recent Sessions</div>
+        <div class="workout-log" id="workoutLog"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BODY STATS -->
+  <div class="page" id="page-weight">
+    <div class="page-header">
+      <h2>Body Stats</h2>
+      <div class="sub">Track weight and body measurements over time</div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">Log Entry</div>
+        <div class="gap-18">
+          <div class="row">
+            <div class="flex1">
+              <div style="font-size:0.75rem;color:var(--text3);margin-bottom:5px;">Weight (lbs)</div>
+              <input class="inp" id="weightVal" type="number" placeholder="155" step="0.1" min="0">
+            </div>
+            <div class="flex1">
+              <div style="font-size:0.75rem;color:var(--text3);margin-bottom:5px;">Date</div>
+              <input class="inp" id="weightDate" type="date">
+            </div>
+          </div>
+          <div>
+            <div style="font-size:0.75rem;color:var(--text3);margin-bottom:5px;">Notes (optional)</div>
+            <input class="inp" id="weightNote" placeholder="e.g. morning, after gym" maxlength="50">
+          </div>
+          <button class="btn" onclick="addWeight()">Save Entry</button>
+        </div>
+        <div style="margin-top:20px; padding-top:16px; border-top:1px solid var(--border);">
+          <div style="font-size:0.75rem;color:var(--text3);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.05em;">Stats</div>
+          <div id="weightStats"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">History</div>
+        <div class="weight-log" id="weightLog"></div>
+      </div>
+    </div>
+
+    <!-- BMI CARD -->
+    <div class="card" style="margin-top:18px">
+      <div class="card-title">BMI Calculator</div>
+      <div class="grid-2" style="gap:18px;align-items:start">
+        <div>
+          <div style="font-size:0.75rem;color:var(--text3);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.05em;">Your Height</div>
+          <div class="row" style="gap:10px;margin-bottom:16px">
+            <div class="flex1">
+              <div style="font-size:0.72rem;color:var(--text3);margin-bottom:4px">Feet</div>
+              <input class="inp" id="heightFt" type="number" min="3" max="8" placeholder="5" oninput="saveHeight()">
+            </div>
+            <div class="flex1">
+              <div style="font-size:0.72rem;color:var(--text3);margin-bottom:4px">Inches</div>
+              <input class="inp" id="heightIn" type="number" min="0" max="11" placeholder="9" oninput="saveHeight()">
+            </div>
+          </div>
+          <div style="font-size:0.75rem;color:var(--text3);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.05em;">BMI Scale</div>
+          <div id="bmiScale"></div>
+        </div>
+        <div id="bmiResult" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:160px"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ACCOUNTS -->
+  <div class="page" id="page-accounts">
+    <div class="page-header"><h2>Accounts</h2><div class="sub">Balances and net worth</div></div>
+    <div id="accountsGrid" class="grid-3" style="margin-bottom:18px"></div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">Manage Accounts
+          <button class="btn-ghost" onclick="toggle('addAccountForm')">+ New</button>
+        </div>
+        <div id="accountsList"></div>
+        <div class="collapsible" id="addAccountForm" style="margin-top:12px">
+          <div class="row">
+            <input class="inp flex1" id="accName" placeholder="Account name…" maxlength="30">
+            <input class="inp" id="accEmoji" placeholder="🏦" maxlength="2" style="width:50px">
+          </div>
+          <div class="row">
+            <select class="inp flex1" id="accType">
+              <option value="checking">Checking / Cash</option>
+              <option value="savings">Savings</option>
+              <option value="credit">Credit Card</option>
+              <option value="investment">Investment</option>
+            </select>
+            <input class="inp flex1" id="accBalance" type="number" placeholder="Opening balance ($)" step="0.01">
+          </div>
+          <button class="btn" onclick="addAccount()">Add Account</button>
+        </div>
+      </div>
+      <div class="card"><div class="card-title">Net Worth</div><div id="netWorthSummary"></div></div>
+    </div>
+  <!-- ARCHIVED ACCOUNTS (inside page-accounts) -->
+  <div id="archivedAccountsSection" style="display:none">
+    <div style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.07em;color:var(--text3);margin-bottom:10px;margin-top:24px">Archived Accounts</div>
+    <div id="archivedAccountsList"></div>
+  </div>
+  </div>
+
+  <!-- TRANSACTIONS -->
+  <div class="page" id="page-transactions">
+    <div class="page-header"><h2>Transactions</h2><div class="sub">Every dollar in and out</div></div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">New Transaction</div>
+        <div class="gap-18">
+          <div class="row">
+            <div class="flex1">
+              <div class="field-label">Type</div>
+              <select class="inp" id="txType" onchange="renderTxTypeFields()">
+                <option value="expense">Expense</option>
+                <option value="income">Income</option>
+                <option value="transfer">Transfer</option>
+              </select>
+            </div>
+            <div class="flex1">
+              <div class="field-label">Date</div>
+              <input class="inp" id="txDate" type="date">
+            </div>
+          </div>
+          <div>
+            <div class="field-label">Payee / Description</div>
+            <input class="inp" id="txPayee" placeholder="e.g. Whole Foods, Paycheck…" maxlength="60">
+          </div>
+          <div class="row">
+            <div class="flex1">
+              <div class="field-label">Amount ($)</div>
+              <input class="inp" id="txAmt" type="number" placeholder="0.00" step="0.01" min="0" oninput="renderTxTypeFields()">
+            </div>
+            <div class="flex1">
+              <div class="field-label">Account</div>
+              <select class="inp" id="txAccount" onchange="renderTxTypeFields()"></select>
+            </div>
+          </div>
+          <div id="txTransferToWrap" style="display:none">
+            <div class="field-label">To Account</div>
+            <select class="inp" id="txTransferTo"></select>
+          </div>
+          <div id="txCategoryWrap">
+            <div class="field-label">Category</div>
+            <select class="inp" id="txCategory" onchange="renderTxTypeFields()"></select>
+          </div>
+          <div>
+            <div class="field-label">Notes (optional)</div>
+            <input class="inp" id="txNotes" placeholder="Any extra details…" maxlength="80">
+          </div>
+          <!-- Double-entry preview -->
+          <div id="txJournalPreview" style="background:var(--surface2);border-radius:8px;padding:10px 12px;font-size:0.78rem;display:none">
+            <div style="font-size:0.67rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--text3);margin-bottom:6px">Journal Entry Preview</div>
+            <div style="display:grid;grid-template-columns:1fr 80px 80px;gap:4px;align-items:center">
+              <div style="font-size:0.67rem;color:var(--text3)">Account</div>
+              <div style="font-size:0.67rem;color:var(--text3);text-align:right">DR</div>
+              <div style="font-size:0.67rem;color:var(--text3);text-align:right">CR</div>
+              <div id="jrnl_dr_name" style="font-weight:500"></div>
+              <div id="jrnl_dr_amt"  style="text-align:right;color:var(--accent);font-weight:600"></div>
+              <div></div>
+              <div id="jrnl_cr_name" style="font-weight:500"></div>
+              <div></div>
+              <div id="jrnl_cr_amt"  style="text-align:right;color:var(--red);font-weight:600"></div>
+            </div>
+          </div>
+          <button class="btn" onclick="addTransaction()">Record Transaction</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">
+          Ledger
+          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+            <input class="inp" id="txSearch" placeholder="Search payee…" style="font-size:0.72rem;padding:4px 8px;width:120px" oninput="renderTransactions()">
+            <select class="inp" id="txFilterCat" onchange="renderTransactions()" style="font-size:0.72rem;padding:4px 8px">
+              <option value="all">All Categories</option>
+            </select>
+            <select class="inp" id="txFilterAcct" onchange="renderTransactions()" style="font-size:0.72rem;padding:4px 8px">
+              <option value="all">All Accounts</option>
+            </select>
+            <select class="inp" id="txFilterType" onchange="renderTransactions()" style="font-size:0.72rem;padding:4px 8px">
+              <option value="all">All Types</option>
+              <option value="expense">Expenses</option>
+              <option value="income">Income</option>
+              <option value="transfer">Transfers</option>
+            </select>
+          </div>
+        </div>
+        <div id="txList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BUDGET -->
+  <div class="page" id="page-budget">
+    <div class="page-header"><h2>Budget</h2><div class="sub">Assign every dollar a job</div></div>
+
+    <div class="budget-topbar">
+      <div style="display:flex;align-items:center;gap:6px">
+        <button class="btn-ghost" onclick="shiftBudgetMonth(-1)" style="font-size:1.1rem;padding:3px 10px">‹</button>
+        <span id="budgetMonthLabel" style="font-family:'Fraunces',serif;font-size:1.1rem;min-width:148px;text-align:center"></span>
+        <button class="btn-ghost" onclick="shiftBudgetMonth(1)"  style="font-size:1.1rem;padding:3px 10px">›</button>
+        <button class="btn-ghost" onclick="shiftBudgetMonth(0)"  style="font-size:0.72rem">Today</button>
+      </div>
+      <div class="budget-pills" id="budgetPills"></div>
+    </div>
+
+    <div class="budget-sheet">
+      <div class="bsheet-header">
+        <div class="bcol-cat">Category</div>
+        <div class="bcol-assigned">Assigned</div>
+        <div class="bcol-activity">Activity</div>
+        <div class="bcol-available">Available</div>
+      </div>
+      <div id="budgetGroups"></div>
+    </div>
+
+    <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
+      <button class="btn-ghost" onclick="toggle('addBudgetGroupForm')" style="font-size:0.78rem">+ Add Group</button>
+      <button class="btn-ghost" onclick="toggle('addBudgetCatForm')"  style="font-size:0.78rem">+ Add Category</button>
+    </div>
+    <div class="collapsible" id="addBudgetGroupForm" style="margin-top:10px;max-width:380px">
+      <div class="row" style="gap:8px">
+        <input class="inp flex1" id="newBudgetGroupName" placeholder="Group name…" maxlength="30">
+        <button class="btn" onclick="addBudgetGroup()">Add Group</button>
+      </div>
+    </div>
+    <div class="collapsible" id="addBudgetCatForm" style="margin-top:10px;max-width:560px">
+      <div class="row" style="gap:8px;flex-wrap:wrap">
+        <input class="inp" id="newBudgetCatEmoji" placeholder="🏷" maxlength="2" style="width:44px">
+        <input class="inp flex1" id="newBudgetCatName" placeholder="Category name…" maxlength="30" style="min-width:120px">
+        <select class="inp flex1" id="newBudgetCatGroup" style="min-width:130px"></select>
+        <button class="btn" onclick="addBudgetCatRow()">Add</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SAVINGS -->
+  <div class="page" id="page-savings">
+    <div class="page-header"><h2>Savings Goals</h2><div class="sub">Fund goals through your budget</div></div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">Active Goals
+          <button class="btn-ghost" onclick="toggle('addSavingsForm')">+ New</button>
+        </div>
+        <div id="savingsList"></div>
+        <div class="collapsible" id="addSavingsForm">
+          <div class="row">
+            <input class="inp flex1" id="savName"   placeholder="Goal name…" maxlength="40">
+            <input class="inp" id="savEmoji" placeholder="🏖" maxlength="2" style="width:60px">
+          </div>
+          <input class="inp" id="savTarget" type="number" placeholder="Target amount ($)" min="1">
+          <button class="btn" onclick="addSavingsGoal()">Create Goal</button>
+        </div>
+      </div>
+      <div class="card gap-18">
+        <div><div class="card-title" style="margin-bottom:12px">Overview</div><div id="savingsOverview"></div></div>
+        <div id="savingsArchiveWrap" style="border-top:1px solid var(--border);padding-top:16px;display:none">
+          <div style="font-size:0.75rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:10px">🏆 Achieved</div>
+          <div id="savingsArchive"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- REPORTS -->
+  <div class="page" id="page-reports">
+    <div class="page-header"><h2>Reports</h2><div class="sub">Income, spending and trends</div></div>
+    <div class="gap-18">
+      <div class="card">
+        <div class="card-title">Income vs Expenses
+          <select class="inp" id="reportMonths" onchange="renderReports()" style="font-size:0.72rem;padding:4px 8px;width:auto">
+            <option value="6">Last 6 months</option>
+            <option value="12">Last 12 months</option>
+            <option value="3">Last 3 months</option>
+          </select>
+        </div>
+        <canvas id="incExpChart" height="200"></canvas>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">Spending by Category
+            <select class="inp" id="catTrendSelect" onchange="renderCatTrend()" style="font-size:0.72rem;padding:4px 8px;width:auto">
+              <option value="breakdown">This Month</option>
+              <option value="trend">Trend Over Time</option>
+            </select>
+          </div>
+          <div id="catBreakdown"></div>
+          <div id="catTrendWrap" style="display:none">
+            <select class="inp" id="catTrendCat" onchange="renderCatTrend()" style="font-size:0.72rem;padding:4px 8px;margin-bottom:10px;width:100%"></select>
+            <canvas id="catTrendChart" height="160"></canvas>
+          </div>
+        </div>
+        <div class="card"><div class="card-title">This Month</div><div id="monthSummary"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DATES -->
+  <div class="page" id="page-dates">
+    <div class="page-header">
+      <h2>Important Dates</h2>
+      <div class="sub">Countdowns to the moments that matter</div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">
+          Upcoming
+          <button class="btn-ghost" onclick="toggle('addDateForm')">+ Add Date</button>
+        </div>
+        <div class="dates-list" id="datesList"></div>
+        <div class="collapsible" id="addDateForm">
+          <div class="row">
+            <input class="inp flex1" id="dateName" placeholder="Event name…" maxlength="40">
+            <input class="inp" id="dateEmoji" placeholder="🎂" maxlength="2" style="width:60px;">
+          </div>
+          <input class="inp" id="dateVal" type="date">
+          <button class="btn" onclick="addDate()">Add Date</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Past Events</div>
+        <div class="dates-list" id="pastDatesList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- READING -->
+  <div class="page" id="page-reading">
+    <div class="page-header">
+      <h2>Reading & Watch List</h2>
+      <div class="sub">Books, articles, films — things to enjoy</div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">
+          My List
+        </div>
+        <div class="reading-filters">
+          <button class="filter-btn active" data-filter="all" onclick="filterReading(this)">All</button>
+          <button class="filter-btn" data-filter="reading" onclick="filterReading(this)">Reading</button>
+          <button class="filter-btn" data-filter="want" onclick="filterReading(this)">Want to</button>
+          <button class="filter-btn" data-filter="done" onclick="filterReading(this)">Done</button>
+        </div>
+        <div class="reading-list" id="readingList"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Add Item</div>
+        <div class="gap-18">
+          <div>
+            <div style="font-size:0.75rem;color:var(--text3);margin-bottom:5px;">Title</div>
+            <input class="inp" id="readTitle" placeholder="Title…" maxlength="60">
+          </div>
+          <div>
+            <div style="font-size:0.75rem;color:var(--text3);margin-bottom:5px;">Author / Creator</div>
+            <input class="inp" id="readAuthor" placeholder="Author or creator…" maxlength="40">
+          </div>
+          <div class="row">
+            <div class="flex1">
+              <div style="font-size:0.75rem;color:var(--text3);margin-bottom:5px;">Type</div>
+              <select class="inp" id="readType">
+                <option value="book">Book</option>
+                <option value="article">Article</option>
+                <option value="film">Film</option>
+                <option value="series">Series</option>
+                <option value="podcast">Podcast</option>
+              </select>
+            </div>
+            <div class="flex1">
+              <div style="font-size:0.75rem;color:var(--text3);margin-bottom:5px;">Status</div>
+              <select class="inp" id="readStatus">
+                <option value="want">Want to</option>
+                <option value="reading">Reading / Watching</option>
+                <option value="done">Done</option>
+              </select>
+            </div>
+          </div>
+          <button class="btn" onclick="addReading()">Add to List</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GROCERY LIST -->
+  <div class="page" id="page-grocery">
+    <div class="page-header"><h2>Grocery List</h2><div class="sub">Track what you need to buy</div></div>
+    <div class="grid-2">
+      <div>
+        <!-- List selector + new list -->
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:14px;flex-wrap:wrap">
+          <select class="inp flex1" id="groceryListSelect" onchange="renderGroceryItems()" style="font-size:0.85rem"></select>
+          <button class="btn-ghost" onclick="toggle('addGroceryListForm')" style="white-space:nowrap">+ New List</button>
+        </div>
+        <div class="collapsible" id="addGroceryListForm" style="margin-bottom:14px">
+          <div class="row" style="gap:8px">
+            <input class="inp" id="newGroceryListEmoji" placeholder="🛒" maxlength="2" style="width:44px">
+            <input class="inp flex1" id="newGroceryListName" placeholder="List name…" maxlength="30">
+            <button class="btn" onclick="addGroceryList()">Create</button>
+          </div>
+        </div>
+
+        <!-- Add item form -->
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-title">Add Item</div>
+          <div class="row" style="gap:8px;flex-wrap:wrap">
+            <input class="inp flex1" id="newGroceryItem" placeholder="Item name…" maxlength="50" style="min-width:120px"
+              onkeydown="if(event.key==='Enter')addGroceryItem()">
+            <input class="inp" id="newGroceryQty" placeholder="Qty" maxlength="15" style="width:70px"
+              onkeydown="if(event.key==='Enter')addGroceryItem()">
+            <button class="btn" onclick="addGroceryItem()">Add</button>
+          </div>
+        </div>
+
+        <!-- Items list -->
+        <div class="card">
+          <div class="card-title" id="groceryListTitle">
+            Items
+            <div style="display:flex;gap:6px">
+              <button class="btn-ghost" style="font-size:0.72rem" onclick="clearCheckedGrocery()">Clear checked</button>
+              <button class="btn-ghost" style="font-size:0.72rem;color:var(--red)" onclick="deleteGroceryList()">Delete list</button>
+            </div>
+          </div>
+          <div id="groceryItems"></div>
+          <div id="groceryEmpty" style="color:var(--text3);font-size:0.84rem;padding:10px 0;display:none">List is empty — add items above</div>
+        </div>
+      </div>
+
+      <!-- Summary / stats panel -->
+      <div class="card" style="align-self:start">
+        <div class="card-title">Summary</div>
+        <div id="grocerySummary"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NOTES -->
+  <div class="page" id="page-notes">
+    <div class="page-header">
+      <h2>Notes</h2>
+      <div class="sub">Your scratch pad — auto-saved</div>
+    </div>
+    <div class="card">
+      <textarea class="notes-area" id="notesArea" placeholder="Start typing…"></textarea>
+      <div class="notes-saved" id="notesSaved">Auto-saves as you type</div>
+    </div>
+  </div>
+
+</main>
+
+
+<!-- ACCOUNT EDIT MODAL -->
+<div id="accEditOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:1000;align-items:center;justify-content:center">
+  <div style="background:var(--surface);border-radius:var(--radius);padding:24px;width:min(380px,94vw);box-shadow:0 8px 40px rgba(0,0,0,0.18)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+      <div style="font-family:'Fraunces',serif;font-size:1.1rem">Edit Account</div>
+      <button onclick="closeAccModal()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text3)">✕</button>
+    </div>
+    <div class="gap-18">
+      <div class="row">
+        <input class="inp" id="editAccEmoji" placeholder="🏦" maxlength="2" style="width:48px">
+        <input class="inp flex1" id="editAccName" placeholder="Account name" maxlength="30">
+      </div>
+      <div>
+        <div class="field-label">Type</div>
+        <select class="inp" id="editAccType">
+          <option value="checking">Checking</option>
+          <option value="savings">Savings</option>
+          <option value="credit">Credit Card</option>
+          <option value="investment">Investment</option>
+          <option value="cash">Cash</option>
+        </select>
+      </div>
+      <div>
+        <div class="field-label">Opening Balance ($)</div>
+        <input class="inp" id="editAccBal" type="number" step="0.01">
+      </div>
+      <button class="btn" style="width:100%" onclick="saveAccEdit()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- TRANSACTION EDIT MODAL -->
+<div id="txEditOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:1000;align-items:center;justify-content:center">
+  <div style="background:var(--surface);border-radius:var(--radius);padding:24px;width:min(480px,94vw);box-shadow:0 8px 40px rgba(0,0,0,0.18);max-height:90vh;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+      <div style="font-family:'Fraunces',serif;font-size:1.1rem">Edit Transaction</div>
+      <button onclick="closeEditModal()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text3);line-height:1">✕</button>
+    </div>
+    <div class="gap-18">
+      <div class="row">
+        <div class="flex1">
+          <div class="field-label">Type</div>
+          <select class="inp" id="editTxType" onchange="renderEditTypeFields()">
+            <option value="expense">Expense</option>
+            <option value="income">Income</option>
+            <option value="transfer">Transfer</option>
+          </select>
+        </div>
+        <div class="flex1">
+          <div class="field-label">Date</div>
+          <input class="inp" id="editTxDate" type="date">
+        </div>
+      </div>
+      <div>
+        <div class="field-label">Payee / Description</div>
+        <input class="inp" id="editTxPayee" maxlength="60">
+      </div>
+      <div class="row">
+        <div class="flex1">
+          <div class="field-label">Amount ($)</div>
+          <input class="inp" id="editTxAmt" type="number" step="0.01" min="0">
+        </div>
+        <div class="flex1">
+          <div class="field-label">Account</div>
+          <select class="inp" id="editTxAccount"></select>
+        </div>
+      </div>
+      <div id="editTxTransferToWrap">
+        <div class="field-label">To Account</div>
+        <select class="inp" id="editTxTransferTo"></select>
+      </div>
+      <div id="editTxCategoryWrap">
+        <div class="field-label">Category</div>
+        <select class="inp" id="editTxCategory"></select>
+      </div>
+      <div>
+        <div class="field-label">Notes</div>
+        <input class="inp" id="editTxNotes" maxlength="80">
+      </div>
+      <div style="display:flex;gap:8px;padding-top:4px">
+        <button class="btn" style="flex:1" onclick="saveEditTx()">Save Changes</button>
+        <button class="btn" style="background:var(--red);flex:0 0 auto" onclick="deleteEditTx()">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toastEl">
+  <span id="toastMsg"></span>
+  <button class="toast-undo" id="toastUndo" onclick="toastUndoFn && toastUndoFn()">Undo</button>
+</div>
+
+<script>
+// ── BMI ────────────────────────────────────────────────────────────────
+const BMI_CATS = [
+  { label: 'Underweight', max: 18.5, color: '#5b84b8' },
+  { label: 'Normal',      max: 25.0, color: '#3d6b52' },
+  { label: 'Overweight',  max: 30.0, color: '#c8951a' },
+  { label: 'Obese',       max: 999,  color: '#b94040' },
+];
+
+function bmiCategory(bmi) {
+  return BMI_CATS.find(c => bmi < c.max) || BMI_CATS[BMI_CATS.length - 1];
+}
+
+function calcBMI(weightLbs, heightFt, heightIn) {
+  const totalInches = (heightFt * 12) + heightIn;
+  if (!totalInches) return null;
+  // US formula: BMI = (weight in lbs / height in inches²) × 703
+  return (weightLbs / (totalInches * totalInches)) * 703;
+}
+
+function bmiGaugePath(bmi) {
+  // Semi-circle gauge: maps BMI 15–40 to 0–180 degrees
+  const clamp = Math.min(40, Math.max(15, bmi));
+  const pct = (clamp - 15) / 25; // 0 to 1
+  const angle = pct * 180; // 0 to 180 degrees
+  const rad = (angle - 180) * Math.PI / 180;
+  const cx = 80, cy = 78, r = 60;
+  const x = cx + r * Math.cos(rad);
+  const y = cy + r * Math.sin(rad);
+  return `M${cx},${cy} L${x.toFixed(1)},${y.toFixed(1)}`;
+}
+
+function renderBMI() {
+  // Set height inputs from state
+  const ftEl = document.getElementById('heightFt');
+  const inEl = document.getElementById('heightIn');
+  if (ftEl && !ftEl.value) ftEl.value = S.heightFt || 5;
+  if (inEl && !inEl.value) inEl.value = S.heightIn !== undefined ? S.heightIn : 9;
+
+  const ft = parseFloat(document.getElementById('heightFt')?.value) || S.heightFt || 5;
+  const inches = parseFloat(document.getElementById('heightIn')?.value);
+  const heightIn = isNaN(inches) ? (S.heightIn || 9) : inches;
+
+  const scaleEl = document.getElementById('bmiScale');
+  const resultEl = document.getElementById('bmiResult');
+  if (!scaleEl || !resultEl) return;
+
+  // Scale bar
+  scaleEl.innerHTML = `
+    <div class="bmi-scale-row">
+      <div class="bmi-scale-seg" style="flex:3.5;background:#5b84b8"></div>
+      <div class="bmi-scale-seg" style="flex:6.5;background:#3d6b52"></div>
+      <div class="bmi-scale-seg" style="flex:5;background:#c8951a"></div>
+      <div class="bmi-scale-seg" style="flex:10;background:#b94040"></div>
+    </div>
+    <div class="bmi-legend">
+      ${BMI_CATS.map(cat => `
+        <div class="bmi-legend-item">
+          <div class="bmi-legend-dot" style="background:${cat.color}"></div>
+          <span>${cat.label} ${cat.max < 999 ? '— under ' + cat.max : '— 30+'}</span>
+        </div>`).join('')}
+    </div>`;
+
+  const latest = [...S.weights].sort((a,b) => new Date(b.date)-new Date(a.date))[0];
+  if (!latest) {
+    resultEl.innerHTML = '<div class="bmi-no-data">Log a weight entry to see your BMI</div>';
+    return;
+  }
+
+  const bmi = calcBMI(latest.val, ft, heightIn);
+  if (!bmi) {
+    resultEl.innerHTML = '<div class="bmi-no-data">Enter your height to calculate BMI</div>';
+    return;
+  }
+
+  const cat = bmiCategory(bmi);
+  const bmiDisplay = bmi.toFixed(1);
+
+  // Gauge SVG — semi-circle
+  const cx = 80, cy = 78, r = 60;
+  // Track arc (grey bg)
+  const trackD = `M${cx-r},${cy} A${r},${r} 0 0,1 ${cx+r},${cy}`;
+  // Needle
+  const clamp = Math.min(40, Math.max(15, bmi));
+  const pct = (clamp - 15) / 25;
+  const angle = (pct * 180 - 180) * Math.PI / 180;
+  const nx = cx + r * Math.cos(angle);
+  const ny = cy + r * Math.sin(angle);
+
+  resultEl.innerHTML = `
+    <div class="bmi-gauge-wrap">
+      <svg class="bmi-gauge-svg" viewBox="0 0 160 85">
+        <!-- background segments -->
+        ${(() => {
+          const segs = [{from:15,to:18.5,c:'#5b84b8'},{from:18.5,to:25,c:'#3d6b52'},{from:25,to:30,c:'#c8951a'},{from:30,to:40,c:'#b94040'}];
+          return segs.map(seg => {
+            const a1 = ((seg.from-15)/25*180-180)*Math.PI/180;
+            const a2 = ((seg.to-15)/25*180-180)*Math.PI/180;
+            const x1=cx+r*Math.cos(a1), y1=cy+r*Math.sin(a1);
+            const x2=cx+r*Math.cos(a2), y2=cy+r*Math.sin(a2);
+            const ri = r - 12;
+            const xi1=cx+ri*Math.cos(a1), yi1=cy+ri*Math.sin(a1);
+            const xi2=cx+ri*Math.cos(a2), yi2=cy+ri*Math.sin(a2);
+            const large = (seg.to - seg.from) / 25 > 0.5 ? 1 : 0;
+            return `<path d="M${x1.toFixed(1)},${y1.toFixed(1)} A${r},${r} 0 ${large},1 ${x2.toFixed(1)},${y2.toFixed(1)} L${xi2.toFixed(1)},${yi2.toFixed(1)} A${ri},${ri} 0 ${large},0 ${xi1.toFixed(1)},${yi1.toFixed(1)} Z" fill="${seg.c}" opacity="0.85"/>`;
+          }).join('');
+        })()}
+        <!-- needle -->
+        <line x1="${cx}" y1="${cy}" x2="${nx.toFixed(1)}" y2="${ny.toFixed(1)}" stroke="${cat.color}" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="${cx}" cy="${cy}" r="5" fill="${cat.color}"/>
+        <circle cx="${cx}" cy="${cy}" r="3" fill="var(--surface)"/>
+        <!-- labels -->
+        <text x="18" y="${cy+14}" font-size="8" fill="var(--text3)" font-family="Instrument Sans">15</text>
+        <text x="134" y="${cy+14}" font-size="8" fill="var(--text3)" font-family="Instrument Sans">40</text>
+        <text x="${cx}" y="14" font-size="8" fill="var(--text3)" font-family="Instrument Sans" text-anchor="middle">25</text>
+      </svg>
+    </div>
+    <div class="bmi-number" style="color:${cat.color}">${bmiDisplay}</div>
+    <div class="bmi-category" style="color:${cat.color}">${cat.label}</div>
+    <div class="bmi-from-weight">Based on ${latest.val} lbs · ${ft}'${heightIn}"</div>`;
+}
+
+function saveHeight() {
+  S.heightFt = parseFloat(document.getElementById('heightFt')?.value) || 5;
+  S.heightIn = parseFloat(document.getElementById('heightIn')?.value) || 0;
+  save();
+  renderBMI();
+}
+
+
+
+// ── STATE ──────────────────────────────────────────────────────────────
+const DEFAULT = {
+  habits: [
+    { id: 1, name: 'Morning walk', streak: 5, history: [1,1,1,1,1,0,0] },
+    { id: 2, name: 'Read 20 pages', streak: 3, history: [1,1,1,0,0,1,0] },
+  ],
+  goals: [
+    { id: 1, name: 'Read 12 books this year', current: 4, target: 12, unit: 'books' },
+    { id: 2, name: 'Run 100 miles', current: 24, target: 100, unit: 'miles' },
+  ],
+  todayDone: {},
+  lastDate: '',
+  workouts: [
+    { id: 1, type: 'Running', duration: 35, dist: 3.2, notes: 'Felt great', date: daysAgo(1) },
+    { id: 2, type: 'Weights', duration: 50, dist: null, notes: 'Upper body day', date: daysAgo(3) },
+  ],
+  weights: [
+    { id: 1, val: 163.5, date: daysAgo(14), note: '' },
+    { id: 2, val: 162.8, date: daysAgo(7), note: 'After rest day' },
+    { id: 3, val: 162.2, date: daysAgo(2), note: '' },
+  ],
+  accounts: [
+    { id: 1, name: 'Checking', emoji: '🏦', type: 'checking', openingBalance: 3200 },
+    { id: 2, name: 'Savings',  emoji: '💰', type: 'savings',  openingBalance: 8500 },
+    { id: 3, name: 'Visa',     emoji: '💳', type: 'credit',   openingBalance: -420 },
+  ],
+  transactions: [
+    { id: 1, type: 'income',  payee: 'Paycheck',        amt: 3200,  accountId: 1, catId: 'c_salary',  date: daysAgo(3),  notes: '', cleared: true  },
+    { id: 2, type: 'expense', payee: 'Whole Foods',     amt: 85.40, accountId: 1, catId: 'c_grocery', date: daysAgo(1),  notes: '', cleared: true  },
+    { id: 3, type: 'expense', payee: 'Coffee Shop',     amt: 4.80,  accountId: 1, catId: 'c_coffee',  date: daysAgo(2),  notes: '', cleared: false },
+    { id: 4, type: 'expense', payee: 'Electric Bill',   amt: 95.00, accountId: 1, catId: 'c_util',    date: daysAgo(4),  notes: '', cleared: true  },
+    { id: 5, type: 'expense', payee: 'Spotify',         amt: 9.99,  accountId: 3, catId: 'c_subs',    date: daysAgo(5),  notes: '', cleared: false },
+    { id: 6, type: 'transfer',payee: 'To Savings',      amt: 500,   accountId: 1, catId: null, toAccountId: 2, date: daysAgo(6), notes: '', cleared: true },
+  ],
+  // ── BUDGET: single source of truth ────────────────────────────────────
+  // catId is the stable key used everywhere (transactions, budget, savings)
+  budgetGroups: [
+    { id: 'bg_income',    name: 'Income',        collapsed: false },
+    { id: 'bg_housing',   name: 'Housing',       collapsed: false },
+    { id: 'bg_food',      name: 'Food',          collapsed: false },
+    { id: 'bg_transport', name: 'Transport',     collapsed: false },
+    { id: 'bg_health',    name: 'Health',        collapsed: false },
+    { id: 'bg_lifestyle', name: 'Lifestyle',     collapsed: false },
+    { id: 'bg_finance',   name: 'Finance',       collapsed: false },
+    { id: 'bg_savings',   name: 'Savings Goals', collapsed: false },
+  ],
+  budgetCats: [
+    // Income
+    { id: 'c_salary',  groupId: 'bg_income',    name: 'Salary',           emoji: '💼', isIncome: true  },
+    { id: 'c_freelance',groupId:'bg_income',    name: 'Freelance',        emoji: '💻', isIncome: true  },
+    { id: 'c_otherinc',groupId: 'bg_income',    name: 'Other Income',     emoji: '💵', isIncome: true  },
+    // Housing
+    { id: 'c_rent',    groupId: 'bg_housing',   name: 'Rent / Mortgage',  emoji: '🏠', isIncome: false },
+    { id: 'c_util',    groupId: 'bg_housing',   name: 'Utilities',        emoji: '💡', isIncome: false },
+    { id: 'c_internet',groupId: 'bg_housing',   name: 'Internet & Phone', emoji: '📡', isIncome: false },
+    { id: 'c_homemaint',groupId:'bg_housing',   name: 'Home Maintenance', emoji: '🔧', isIncome: false },
+    // Food
+    { id: 'c_grocery', groupId: 'bg_food',      name: 'Groceries',        emoji: '🛒', isIncome: false },
+    { id: 'c_dining',  groupId: 'bg_food',      name: 'Dining Out',       emoji: '🍽', isIncome: false },
+    { id: 'c_coffee',  groupId: 'bg_food',      name: 'Coffee & Drinks',  emoji: '☕', isIncome: false },
+    // Transport
+    { id: 'c_gas',     groupId: 'bg_transport', name: 'Gas',              emoji: '⛽', isIncome: false },
+    { id: 'c_carpay',  groupId: 'bg_transport', name: 'Car Payment',      emoji: '🚗', isIncome: false },
+    { id: 'c_carins',  groupId: 'bg_transport', name: 'Car Insurance',    emoji: '🛡', isIncome: false },
+    { id: 'c_transit', groupId: 'bg_transport', name: 'Public Transit',   emoji: '🚌', isIncome: false },
+    // Health
+    { id: 'c_healthins',groupId:'bg_health',    name: 'Health Insurance', emoji: '🏥', isIncome: false },
+    { id: 'c_doctor',  groupId: 'bg_health',    name: 'Doctor & Dental',  emoji: '🦷', isIncome: false },
+    { id: 'c_gym',     groupId: 'bg_health',    name: 'Gym & Fitness',    emoji: '🏋', isIncome: false },
+    { id: 'c_pharma',  groupId: 'bg_health',    name: 'Pharmacy',         emoji: '💊', isIncome: false },
+    // Lifestyle
+    { id: 'c_clothing',groupId: 'bg_lifestyle', name: 'Clothing',         emoji: '👕', isIncome: false },
+    { id: 'c_entertain',groupId:'bg_lifestyle', name: 'Entertainment',    emoji: '🎬', isIncome: false },
+    { id: 'c_subs',    groupId: 'bg_lifestyle', name: 'Subscriptions',    emoji: '📱', isIncome: false },
+    { id: 'c_travel',  groupId: 'bg_lifestyle', name: 'Travel',           emoji: '✈️', isIncome: false },
+    { id: 'c_gifts',   groupId: 'bg_lifestyle', name: 'Gifts & Donations',emoji: '🎁', isIncome: false },
+    { id: 'c_personal',groupId: 'bg_lifestyle', name: 'Personal Care',    emoji: '🧴', isIncome: false },
+    // Finance
+    { id: 'c_taxes',   groupId: 'bg_finance',   name: 'Taxes',            emoji: '🧾', isIncome: false },
+    { id: 'c_loan',    groupId: 'bg_finance',   name: 'Loan Payment',     emoji: '🏦', isIncome: false },
+    { id: 'c_other',   groupId: 'bg_finance',   name: 'Other Expense',    emoji: '📦', isIncome: false },
+  ],
+  // assigned[catId][monthKey] = amount assigned
+  budgetAssigned: {},
+  // savings goals — each gets a budgetCat in bg_savings automatically
+  savings: [
+    { id: 'sav_1', name: 'Emergency Fund', emoji: '🛡', target: 10000, archived: false },
+    { id: 'sav_2', name: 'Vacation',       emoji: '🏖', target: 3000,  archived: false },
+  ],
+  savingsArchive: [],
+  dates: [
+    { id: 1, name: "Mom's Birthday", emoji: '🎂', date: futureDate(12) },
+    { id: 2, name: 'Annual Leave', emoji: '✈️', date: futureDate(45) },
+    { id: 3, name: 'Work Anniversary', emoji: '🏆', date: pastDate(30) },
+  ],
+  reading: [
+    { id: 1, title: 'Atomic Habits', author: 'James Clear', type: 'book', status: 'reading' },
+    { id: 2, title: 'Dune', author: 'Frank Herbert', type: 'book', status: 'want' },
+    { id: 3, title: 'The Bear', author: 'FX', type: 'series', status: 'done' },
+  ],
+  notes: '',
+  dark: false,
+  heightFt: 5,
+  heightIn: 9,
+  archivedAccounts: [],
+  archivedTransactions: [],
+  groceryLists: [
+    {
+      id: 'gl_1', name: 'Weekly Shop', emoji: '🛒',
+      items: [
+        { id: 'gi_1', name: 'Milk', qty: '1 gal', checked: false },
+        { id: 'gi_2', name: 'Eggs', qty: '1 doz', checked: false },
+        { id: 'gi_3', name: 'Bread', qty: '', checked: false },
+      ]
+    }
+  ],
+};
+
+function daysAgo(n) {
+  const d = new Date(); d.setDate(d.getDate() - n);
+  return d.toISOString().split('T')[0];
+}
+
+function futureDate(n) {
+  const d = new Date(); d.setDate(d.getDate() + n);
+  return d.toISOString().split('T')[0];
+}
+
+function pastDate(n) {
+  return daysAgo(n);
+}
+
+let S = JSON.parse(localStorage.getItem('lifedash2') || 'null') || DEFAULT;
+
+// ── MIGRATION ─────────────────────────────────────────────────────────
+function runMigration() {
+  if (!S.accounts)       S.accounts = [];
+  if (!S.transactions)   S.transactions = [];
+  if (!S.budgetGroups)   S.budgetGroups = [];
+  if (!S.budgetCats)     S.budgetCats = [];
+  if (!S.budgetAssigned) S.budgetAssigned = {};
+  if (!S.savings)        S.savings = [];
+  if (!S.savingsArchive) S.savingsArchive = [];
+  if (!S.groceryLists)       S.groceryLists       = [];
+  if (!S.archivedAccounts)    S.archivedAccounts    = [];
+  if (!S.archivedTransactions) S.archivedTransactions = [];
+  if (!S.archivedTransactions) S.archivedTransactions = [];
+  S.savings = S.savings.map(s => ({ archived: false, ...s }));
+
+  // Migrate old transaction format: category string → catId
+  S.transactions = S.transactions.map(tx => {
+    if (tx.catId !== undefined) return tx;
+    const match = S.budgetCats.find(c => c.name === tx.category);
+    return { ...tx, catId: match ? match.id : null, cleared: tx.cleared || false };
+  });
+
+  // Ensure each savings goal has a budget category in bg_savings
+  if (!S.budgetGroups.find(g => g.id === 'bg_savings')) {
+    S.budgetGroups.push({ id: 'bg_savings', name: 'Savings Goals', collapsed: false });
+  }
+  // Coerce all IDs to strings so onclick string comparisons work
+  S.savings = S.savings.map(s => ({ ...s, id: String(s.id) }));
+  S.accounts = S.accounts.map(a => ({ ...a, id: typeof a.id === 'number' ? a.id : Number(a.id) }));
+  S.transactions = S.transactions.map(tx => ({ ...tx, id: typeof tx.id === 'number' ? tx.id : Number(tx.id) }));
+
+  S.savings.forEach(sav => {
+    const cid = 'sav_cat_' + sav.id;
+    if (!S.budgetCats.find(c => c.id === cid)) {
+      S.budgetCats.push({ id: cid, groupId: 'bg_savings', name: sav.name, emoji: sav.emoji, isIncome: false, savingsGoalId: sav.id });
+    }
+  });
+}
+runMigration();
+
+// ── JSONBIN SYNC ───────────────────────────────────────────────────────
+// JSONBin v3 requires X-Master-Key for all requests.
+// User enters their API key once; it's stored in localStorage (never in the bin).
+// Declared early so save() (called during day-reset) can reference them.
+const JSONBIN_BASE = 'https://api.jsonbin.io/v3';
+let syncBinId  = localStorage.getItem('lifedash2_binId')  || null;
+let syncApiKey = localStorage.getItem('lifedash2_apiKey') || null;
+let syncTimer  = null;
+
+function getTodayKey() { return new Date().toISOString().split('T')[0]; }
+const _todayKey = getTodayKey();
+if (S.lastDate !== _todayKey) {
+  // New day: reset todayDone and append 0 to each habit's history for the missed day
+  S.habits.forEach(h => {
+    // Push 0 for yesterday if they didn't complete it
+    if (h.history.length < 7) h.history = [...Array(7 - h.history.length).fill(0), ...h.history];
+    // Keep exactly 7 days
+    h.history = h.history.slice(-7);
+  });
+  S.todayDone = {};
+  S.lastDate = _todayKey;
+  save();
+}
+
+// ── JSONBIN SYNC (functions below) ────────────────────────────────────
+
+function jbHeaders(extra) {
+  const h = { 'Content-Type': 'application/json' };
+  if (syncApiKey) h['X-Master-Key'] = syncApiKey;
+  return Object.assign(h, extra || {});
+}
+
+function syncUI() {
+  const dot     = document.getElementById('syncDot');
+  const txt     = document.getElementById('syncStatusText');
+  const setup   = document.getElementById('syncSetup');
+  const conn    = document.getElementById('syncConnected');
+  const keyInp  = document.getElementById('apiKeyInput');
+  if (syncBinId) {
+    setup.style.display = 'none';
+    conn.style.display  = 'block';
+    document.getElementById('syncBinDisplay').textContent = syncBinId.slice(0, 12) + '…';
+    dot.className = 'sync-dot ok';
+    txt.textContent = 'Connected';
+  } else {
+    setup.style.display = 'block';
+    conn.style.display  = 'none';
+    dot.className = 'sync-dot';
+    txt.textContent = 'Not connected';
+  }
+  if (keyInp && syncApiKey) keyInp.value = syncApiKey;
+}
+
+function setSyncStatus(state, msg, slot) {
+  const dot   = document.getElementById('syncDot');
+  const txt   = document.getElementById('syncStatusText');
+  const msgEl = document.getElementById(slot || 'syncMsg2');
+  dot.className = 'sync-dot ' + (state === 'busy' ? 'busy' : state === 'ok' ? 'ok' : state === 'err' ? 'err' : '');
+  if      (state === 'ok')   txt.textContent = 'Synced';
+  else if (state === 'err')  txt.textContent = 'Error';
+  else if (state === 'busy') txt.textContent = 'Syncing…';
+  if (msgEl) msgEl.textContent = msg || '';
+}
+
+function saveApiKey() {
+  const key = document.getElementById('apiKeyInput')?.value.trim();
+  if (!key) return;
+  syncApiKey = key;
+  localStorage.setItem('lifedash2_apiKey', key);
+  setSyncStatus('ok', '✓ API key saved', 'syncMsg');
+}
+
+async function createBin() {
+  if (isFileProtocol()) {
+    setSyncStatus('err', '✗ Needs http:// — use Export instead', 'syncMsg');
+    return;
+  }
+  const key = document.getElementById('apiKeyInput')?.value.trim();
+  if (!key) { setSyncStatus('err', '✗ Enter your Master Key first', 'syncMsg'); return; }
+  syncApiKey = key;
+  localStorage.setItem('lifedash2_apiKey', key);
+  setSyncStatus('busy', 'Creating bin…', 'syncMsg');
+  try {
+    const res = await fetch(JSONBIN_BASE + '/b', {
+      method: 'POST',
+      headers: jbHeaders({ 'X-Bin-Name': 'LifeDashboard', 'X-Bin-Private': 'true' }),
+      body: JSON.stringify(S)
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'HTTP ' + res.status);
+    syncBinId = data.metadata.id;
+    localStorage.setItem('lifedash2_binId', syncBinId);
+    syncUI();
+    setSyncStatus('ok', '✓ Created — ID copied!', 'syncMsg2');
+    navigator.clipboard?.writeText(syncBinId).catch(() => {});
+  } catch (e) {
+    const msg = e.message.includes('fetch') ? '✗ Network error — check key & origin' : '✗ ' + e.message;
+    setSyncStatus('err', msg, 'syncMsg');
+  }
+}
+
+async function connectBin() {
+  if (isFileProtocol()) { setSyncStatus('err', '✗ Needs http:// — use Import instead', 'syncMsg'); return; }
+  const id  = document.getElementById('binIdInput')?.value.trim();
+  const key = document.getElementById('apiKeyInput')?.value.trim();
+  if (!id)  { setSyncStatus('err', '✗ Enter a Bin ID', 'syncMsg'); return; }
+  if (!key) { setSyncStatus('err', '✗ Enter your Master Key', 'syncMsg'); return; }
+  syncApiKey = key;
+  localStorage.setItem('lifedash2_apiKey', key);
+  setSyncStatus('busy', 'Connecting…', 'syncMsg');
+  try {
+    const res = await fetch(JSONBIN_BASE + '/b/' + id + '/latest', { headers: jbHeaders() });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'HTTP ' + res.status);
+    // Deep merge: keep all DEFAULT keys, overlay saved data, run migration
+    S = data.record;
+    runMigration();
+    syncBinId = id;
+    localStorage.setItem('lifedash2_binId', id);
+    localStorage.setItem('lifedash2', JSON.stringify(S));
+    syncUI();
+    setSyncStatus('ok', '✓ Connected & loaded', 'syncMsg2');
+    renderTxSelects(); renderAll();
+  } catch (e) {
+    setSyncStatus('err', '✗ ' + e.message, 'syncMsg');
+  }
+}
+
+async function pushData() {
+  if (!syncBinId) return;
+  setSyncStatus('busy', '');
+  try {
+    const res = await fetch(JSONBIN_BASE + '/b/' + syncBinId, {
+      method: 'PUT',
+      headers: jbHeaders(),
+      body: JSON.stringify(S)
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'HTTP ' + res.status);
+    setSyncStatus('ok', '✓ ' + new Date().toLocaleTimeString());
+  } catch (e) {
+    setSyncStatus('err', '✗ Push: ' + e.message);
+  }
+}
+
+async function pullData() {
+  if (!syncBinId) return;
+  setSyncStatus('busy', '');
+  try {
+    const res = await fetch(JSONBIN_BASE + '/b/' + syncBinId + '/latest', { headers: jbHeaders() });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'HTTP ' + res.status);
+    S = data.record;
+    runMigration();
+    localStorage.setItem('lifedash2', JSON.stringify(S));
+    setSyncStatus('ok', '✓ ' + new Date().toLocaleTimeString());
+    renderTxSelects(); renderAll();
+  } catch (e) {
+    setSyncStatus('err', '✗ Pull: ' + e.message);
+  }
+}
+
+function disconnectBin() {
+  syncBinId = null;
+  localStorage.removeItem('lifedash2_binId');
+  syncUI();
+}
+
+function save() {
+  localStorage.setItem('lifedash2', JSON.stringify(S));
+  if (syncBinId) {
+    clearTimeout(syncTimer);
+    syncTimer = setTimeout(pushData, 3000);
+  }
+}
+
+function exportData() {
+  const blob = new Blob([JSON.stringify(S, null, 2)], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = 'lifedash-backup-' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importData(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      S = JSON.parse(ev.target.result);
+      runMigration();
+      localStorage.setItem('lifedash2', JSON.stringify(S));
+      renderTxSelects(); renderAll();
+      setSyncStatus('ok', '✓ Imported', 'syncMsg');
+    } catch {
+      setSyncStatus('err', '✗ Invalid JSON file', 'syncMsg');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+function isFileProtocol() {
+  return location.protocol === 'file:';
+}
+
+syncUI();
+// Show warning if running as file://
+if (isFileProtocol()) {
+  const w = document.getElementById('fileUrlWarning');
+  if (w) w.style.display = 'block';
+}
+
+
+// ── TRANSACTION EDIT MODAL ────────────────────────────────────────────────
+let _editTxId = null;
+
+function openEditModal(id) {
+  const tx = S.transactions.find(t => t.id === id);
+  if (!tx) return;
+  _editTxId = id;
+  const ov = document.getElementById('txEditOverlay');
+  ov.style.display = 'flex';
+
+  // Populate account selects
+  const accOpts = S.accounts.map(a => `<option value="${a.id}">${a.emoji} ${a.name}</option>`).join('');
+  document.getElementById('editTxAccount').innerHTML   = accOpts;
+  document.getElementById('editTxTransferTo').innerHTML = accOpts;
+
+  document.getElementById('editTxType').value    = tx.type;
+  document.getElementById('editTxDate').value    = tx.date || '';
+  document.getElementById('editTxPayee').value   = tx.payee || '';
+  document.getElementById('editTxAmt').value     = tx.amt || '';
+  document.getElementById('editTxAccount').value = tx.accountId || '';
+  document.getElementById('editTxNotes').value   = tx.notes || '';
+  if (tx.toAccountId) document.getElementById('editTxTransferTo').value = tx.toAccountId;
+
+  renderEditTypeFields();
+
+  // Set category after type fields rendered
+  if (tx.catId) setTimeout(() => {
+    const sel = document.getElementById('editTxCategory');
+    if (sel) sel.value = tx.catId;
+  }, 0);
+}
+
+function closeEditModal() {
+  document.getElementById('txEditOverlay').style.display = 'none';
+  _editTxId = null;
+}
+
+function renderEditTypeFields() {
+  const type = document.getElementById('editTxType')?.value || 'expense';
+  document.getElementById('editTxTransferToWrap').style.display = type === 'transfer' ? 'block' : 'none';
+  document.getElementById('editTxCategoryWrap').style.display   = type === 'transfer' ? 'none' : 'block';
+  const catSel = document.getElementById('editTxCategory');
+  if (catSel) catSel.innerHTML = buildCatOptgroups(type);
+}
+
+function saveEditTx() {
+  const tx = S.transactions.find(t => t.id === _editTxId);
+  if (!tx) return;
+  const type    = document.getElementById('editTxType').value;
+  const date    = document.getElementById('editTxDate').value;
+  const payee   = document.getElementById('editTxPayee').value.trim();
+  const amt     = parseFloat(document.getElementById('editTxAmt').value);
+  const acctId  = parseInt(document.getElementById('editTxAccount').value);
+  const catId   = type !== 'transfer' ? (document.getElementById('editTxCategory')?.value || null) : null;
+  const toAccId = type === 'transfer' ? parseInt(document.getElementById('editTxTransferTo').value) : null;
+  const notes   = document.getElementById('editTxNotes').value.trim();
+  if (!payee || !amt || !acctId) { showToast('Payee, amount and account are required'); return; }
+  if (type === 'transfer' && toAccId === acctId) { showToast('Choose a different destination account'); return; }
+  tx.type = type; tx.date = date; tx.payee = payee; tx.amt = amt;
+  tx.accountId = acctId; tx.catId = catId; tx.toAccountId = toAccId || null; tx.notes = notes;
+  save(); closeEditModal();
+  renderTransactions(); renderAccounts(); renderBudget(); renderSavings(); renderReports();
+  showToast('Transaction updated');
+}
+
+function deleteEditTx() {
+  const tx = S.transactions.find(t => t.id === _editTxId);
+  if (!tx) return;
+  const snapshot = JSON.stringify(S.transactions);
+  S.transactions = S.transactions.filter(t => t.id !== _editTxId);
+  save(); closeEditModal();
+  renderTransactions(); renderAccounts(); renderBudget(); renderSavings(); renderReports();
+  showToast('Transaction deleted', () => {
+    S.transactions = JSON.parse(snapshot);
+    save(); renderTransactions(); renderAccounts(); renderBudget(); renderSavings(); renderReports();
+    showToast('Restored');
+  });
+}
+
+// Close modal on overlay click
+// Close edit modal on overlay click
+const _ovEl = document.getElementById('txEditOverlay');
+const _accOvEl = document.getElementById('accEditOverlay');
+if (_accOvEl) _accOvEl.addEventListener('click', e => { if (e.target === _accOvEl) closeAccModal(); });
+if (_ovEl) _ovEl.addEventListener('click', e => { if (e.target === _ovEl) closeEditModal(); });
+
+// ── TOAST / UNDO ──────────────────────────────────────────────────────────
+let _toastTimer = null;
+let toastUndoFn = null;
+
+function showToast(msg, undoFn) {
+  const el      = document.getElementById('toastEl');
+  const msgEl   = document.getElementById('toastMsg');
+  const undoBtn = document.getElementById('toastUndo');
+  if (!el) return;
+  clearTimeout(_toastTimer);
+  msgEl.textContent = msg;
+  toastUndoFn = undoFn || null;
+  undoBtn.style.display = undoFn ? 'inline-block' : 'none';
+  el.classList.add('show');
+  _toastTimer = setTimeout(() => { el.classList.remove('show'); toastUndoFn = null; }, 4000);
+}
+
+// ── NAVIGATION ─────────────────────────────────────────────────────────
+document.querySelectorAll('.nav-item').forEach(el => {
+  el.addEventListener('click', () => {
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('page-' + el.dataset.page).classList.add('active');
+    renderAll();
+  });
+});
+
+// ── DARK MODE ──────────────────────────────────────────────────────────
+function toggleDark() {
+  S.dark = !S.dark; save();
+  applyDark();
+  // Re-render charts so canvas colours update immediately
+  renderReports();
+  renderCatTrend();
+}
+function applyDark() {
+  document.body.classList.toggle('dark', S.dark);
+  document.getElementById('darkSwitch').classList.toggle('on', S.dark);
+}
+applyDark();
+
+// ── DATE / GREET ───────────────────────────────────────────────────────
+const now = new Date();
+const hr = now.getHours();
+document.getElementById('timeGreet').textContent = hr < 12 ? 'Morning' : hr < 17 ? 'Afternoon' : 'Evening';
+document.getElementById('sidebarDate').textContent = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+// ── HELPERS ────────────────────────────────────────────────────────────
+function toggle(id) {
+  document.getElementById(id).classList.toggle('open');
+}
+
+function fmt(n) { const v = parseFloat(n); if (isNaN(v)) return '$0.00'; return (v < 0 ? '-$' : '$') + Math.abs(v).toFixed(2); }
+
+function daysBetween(dateStr) {
+  const d = new Date(dateStr);
+  const t = new Date(); t.setHours(0,0,0,0);
+  return Math.round((d - t) / 86400000);
+}
+
+function fmtDate(dateStr) {
+  return new Date(dateStr + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+// ── RENDER ALL ─────────────────────────────────────────────────────────
+function renderAll() {
+  renderOverview();
+  renderHabits();
+  renderGoals();
+  renderWorkouts();
+  renderWeights();
+  renderAccounts();
+  renderArchivedAccounts();
+  renderTransactions();
+  renderBudget();
+  renderSavings();
+  renderReports();
+  renderDates();
+  renderReading();
+  renderNotes();
+  renderBMI();
+  renderGrocery();
+}
+
+// ── OVERVIEW ───────────────────────────────────────────────────────────
+function renderOverview() {
+  const doneH = Object.values(S.todayDone).filter(Boolean).length;
+  const totalH = S.habits.length;
+  const avgGoal = S.goals.length ? Math.round(S.goals.reduce((s,g)=>s+Math.min(100,g.current/g.target*100),0)/S.goals.length) : 0;
+  const thisMonth = new Date().toISOString().slice(0,7);
+  const monthExp = S.transactions.filter(t=>t.type==='expense'&&t.date?.startsWith(thisMonth)).reduce((s,t)=>s+t.amt,0);
+  const nextDate = S.dates.filter(d=>daysBetween(d.date)>=0).sort((a,b)=>daysBetween(a.date)-daysBetween(b.date))[0];
+  const latestW = S.weights.sort((a,b)=>new Date(b.date)-new Date(a.date))[0];
+
+  const cards = [
+    { icon:'✦', title:'Habits & Goals', sub:'Personal consistency', page:'habits',
+      metrics: [`${doneH}/${totalH} done today`, `${avgGoal}% avg goal progress`] },
+    { icon:'◈', title:'Health', sub:'Workouts & body stats', page:'workout',
+      metrics: [`${S.workouts.length} sessions logged`, latestW ? `Latest: ${latestW.val} lbs` : 'No weight logged'] },
+    { icon:'▦', title:'Finance', sub:'Accounts, transactions & savings', page:'accounts',
+      metrics: [`${S.accounts.length} accounts`, `${S.savings.filter(s=>!s.archived).length} savings goals`] },
+    { icon:'◎', title:'Important Dates', sub:'Countdowns & milestones', page:'dates',
+      metrics: nextDate ? [`Next: ${nextDate.name} in ${daysBetween(nextDate.date)}d`] : ['No upcoming dates'] },
+    { icon:'◫', title:'Reading List', sub:'Books, films & more', page:'reading',
+      metrics: [`${S.reading.filter(r=>r.status==='reading').length} in progress`, `${S.reading.filter(r=>r.status==='done').length} completed`] },
+    { icon:'⊡', title:'Notes', sub:'Your scratch pad', page:'notes',
+      metrics: [S.notes ? `${S.notes.length} characters` : 'Empty'] },
+    { icon:'🛒', title:'Grocery List', sub:'Shopping & errands', page:'grocery',
+      metrics: [(() => { const lists = S.groceryLists||[]; const total = lists.reduce((s,l)=>s+l.items.length,0); const done = lists.reduce((s,l)=>s+l.items.filter(i=>i.checked).length,0); return total ? `${done}/${total} items checked` : 'No items yet'; })(), `${(S.groceryLists||[]).length} list${(S.groceryLists||[]).length!==1?'s':''}` ] },
+  ];
+
+  document.getElementById('overviewGrid').innerHTML = cards.map(c => `
+    <div class="overview-card" onclick="goTo('${c.page}')">
+      <div class="ov-icon">${c.icon}</div>
+      <div class="ov-title">${c.title}</div>
+      <div class="ov-sub">${c.sub}</div>
+      <div class="ov-metric">${c.metrics.map(m=>`<span class="ov-tag">${m}</span>`).join('')}</div>
+    </div>
+  `).join('');
+}
+
+function goTo(page) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const nav = document.querySelector(`[data-page="${page}"]`);
+  if (nav) nav.classList.add('active');
+  document.getElementById('page-' + page).classList.add('active');
+  renderAll();
+}
+
+
+// ── REPORTS ─────────────────────────────────────────────────────────────
+function renderReports() {
+  const canvas = document.getElementById('incExpChart');
+  if (!canvas) return;
+  const months = parseInt(document.getElementById('reportMonths')?.value || 6);
+
+  // Build month buckets
+  const buckets = [];
+  for (let i = months - 1; i >= 0; i--) {
+    const d = new Date(); d.setMonth(d.getMonth() - i); d.setDate(1);
+    const key = d.toISOString().slice(0, 7);
+    const label = d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+    buckets.push({ key, label, income: 0, expense: 0 });
+  }
+  S.transactions.forEach(tx => {
+    const bk = buckets.find(b => tx.date && tx.date.startsWith(b.key));
+    if (!bk) return;
+    if (tx.type === 'income')  bk.income  += tx.amt;
+    if (tx.type === 'expense') bk.expense += tx.amt;
+  });
+
+  // Draw chart
+  const W = canvas.offsetWidth || 600;
+  canvas.width = W; canvas.height = 200;
+  const pad = { t: 20, r: 20, b: 40, l: 60 };
+  const cw = W - pad.l - pad.r, ch = 200 - pad.t - pad.b;
+  const maxVal = Math.max(...buckets.map(b => Math.max(b.income, b.expense)), 1);
+  const bw = cw / buckets.length;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, W, 200);
+
+  const isDark = document.body.classList.contains('dark');
+  ctx.strokeStyle = isDark ? '#332f2a' : '#e3ddd4'; ctx.lineWidth = 1;
+  for (let i = 0; i <= 4; i++) {
+    const y = pad.t + ch - (ch * i / 4);
+    ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(pad.l + cw, y); ctx.stroke();
+    ctx.fillStyle = isDark ? '#5e5a55' : '#a09b95';
+    ctx.font = '10px Instrument Sans'; ctx.textAlign = 'right';
+    ctx.fillText('$' + (maxVal * i / 4 / 1000).toFixed(1) + 'k', pad.l - 6, y + 3);
+  }
+
+  buckets.forEach((b, i) => {
+    const x = pad.l + i * bw;
+    const incH = ch * (b.income / maxVal);
+    const expH = ch * (b.expense / maxVal);
+    const barW = bw * 0.35;
+    ctx.fillStyle = isDark ? '#5a9970' : '#3d6b52';
+    ctx.fillRect(x + bw * 0.08, pad.t + ch - incH, barW, incH);
+    ctx.fillStyle = isDark ? '#d45f5f' : '#b94040';
+    ctx.fillRect(x + bw * 0.08 + barW + 2, pad.t + ch - expH, barW, expH);
+    ctx.fillStyle = isDark ? '#5e5a55' : '#a09b95';
+    ctx.font = '10px Instrument Sans'; ctx.textAlign = 'center';
+    ctx.fillText(b.label, x + bw / 2, 200 - pad.b + 14);
+  });
+
+  ctx.fillStyle = isDark ? '#5a9970' : '#3d6b52'; ctx.fillRect(pad.l, 8, 10, 10);
+  ctx.fillStyle = isDark ? '#f0ece5' : '#1c1a17';
+  ctx.font = '11px Instrument Sans'; ctx.textAlign = 'left';
+  ctx.fillText('Income', pad.l + 14, 17);
+  ctx.fillStyle = isDark ? '#d45f5f' : '#b94040'; ctx.fillRect(pad.l + 70, 8, 10, 10);
+  ctx.fillStyle = isDark ? '#f0ece5' : '#1c1a17';
+  ctx.fillText('Expenses', pad.l + 84, 17);
+
+  // Category breakdown this month
+  const thisMonth = new Date().toISOString().slice(0, 7);
+  const catTotals = {};
+  S.transactions
+    .filter(tx => tx.type === 'expense' && tx.date && tx.date.startsWith(thisMonth))
+    .forEach(tx => {
+      const cat = S.budgetCats ? S.budgetCats.find(c => c.id === tx.catId) : null;
+      const k = cat ? cat.id : (tx.catId || tx.category || 'uncategorized');
+      catTotals[k] = (catTotals[k] || 0) + tx.amt;
+    });
+  const sorted = Object.entries(catTotals).sort((a, b) => b[1] - a[1]);
+  const totalExp = sorted.reduce((s, [, v]) => s + v, 0);
+  const catEl = document.getElementById('catBreakdown');
+  if (catEl) {
+    catEl.innerHTML = sorted.length ? sorted.map(([cat, amt]) => {
+      const pct = Math.round(amt / totalExp * 100);
+      const catObj = S.budgetCats ? (S.budgetCats.find(c => c.id === cat) || S.budgetCats.find(c => c.name === cat)) : null;
+      const catLabel = catObj ? (catObj.emoji + ' ' + catObj.name) : (cat || 'Uncategorized');
+      return `<div style="margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;font-size:0.8rem;margin-bottom:4px">
+          <span>${catLabel}</span>
+          <span style="color:var(--text3)">${fmt(amt)} · ${pct}%</span>
+        </div>
+        <div class="bbar-bg"><div class="bbar-fill bbar-ok" style="width:${pct}%"></div></div>
+      </div>`;
+    }).join('') : '<div style="color:var(--text3);font-size:0.84rem">No expenses this month</div>';
+  }
+
+  // Month summary
+  const monthInc = S.transactions.filter(tx => tx.type==='income'  && tx.date?.startsWith(thisMonth)).reduce((s,t)=>s+t.amt,0);
+  const monthExp = S.transactions.filter(tx => tx.type==='expense' && tx.date?.startsWith(thisMonth)).reduce((s,t)=>s+t.amt,0);
+  const net = monthInc - monthExp;
+  const msEl = document.getElementById('monthSummary');
+  if (msEl) msEl.innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div style="display:flex;justify-content:space-between;font-size:0.86rem">
+        <span style="color:var(--text3)">Income</span>
+        <span style="font-weight:600;color:var(--accent)">${fmt(monthInc)}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:0.86rem">
+        <span style="color:var(--text3)">Expenses</span>
+        <span style="font-weight:600;color:var(--red)">${fmt(monthExp)}</span>
+      </div>
+      <div style="border-top:1px solid var(--border);padding-top:8px;display:flex;justify-content:space-between;font-size:0.9rem">
+        <span style="font-weight:600">Net</span>
+        <span style="font-weight:700;color:${net>=0?'var(--accent)':'var(--red)'}">${net>=0?'+':''}${fmt(net)}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:0.82rem">
+        <span style="color:var(--text3)">Transactions</span>
+        <span style="font-weight:600">${S.transactions.filter(t=>t.date?.startsWith(thisMonth)).length}</span>
+      </div>
+    </div>`;
+  renderCatTrend();
+}
+
+
+function renderCatTrend() {
+  const mode = document.getElementById('catTrendSelect')?.value || 'breakdown';
+  const breakdownEl  = document.getElementById('catBreakdown');
+  const trendWrapEl  = document.getElementById('catTrendWrap');
+  if (!breakdownEl || !trendWrapEl) return;
+  breakdownEl.style.display  = mode === 'breakdown' ? 'block' : 'none';
+  trendWrapEl.style.display  = mode === 'trend'     ? 'block' : 'none';
+  if (mode !== 'trend') return;
+
+  // Populate category selector with expense cats that have any transactions
+  const catSel = document.getElementById('catTrendCat');
+  const usedCatIds = [...new Set(S.transactions.filter(t => t.type === 'expense' && t.catId).map(t => t.catId))];
+  const usedCats = usedCatIds.map(id => S.budgetCats.find(c => c.id === id)).filter(Boolean);
+  if (catSel) {
+    const prev = catSel.value;
+    catSel.innerHTML = usedCats.map(c => `<option value="${c.id}">${c.emoji} ${c.name}</option>`).join('')
+      || '<option value="">No categorised transactions</option>';
+    if (prev && usedCatIds.includes(prev)) catSel.value = prev;
+  }
+
+  const selCatId = catSel?.value;
+  if (!selCatId) return;
+
+  // Build 6-month buckets
+  const buckets = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() - i);
+    buckets.push({ key: d.toISOString().slice(0, 7), label: d.toLocaleDateString('en-US', { month: 'short' }), amt: 0 });
+  }
+  S.transactions.forEach(tx => {
+    if (tx.type !== 'expense' || tx.catId !== selCatId || !tx.date) return;
+    const bk = buckets.find(b => tx.date.startsWith(b.key));
+    if (bk) bk.amt += tx.amt;
+  });
+
+  const canvas = document.getElementById('catTrendChart');
+  if (!canvas) return;
+  const W = canvas.offsetWidth || 400;
+  canvas.width = W; canvas.height = 160;
+  const pad = { t: 16, r: 16, b: 36, l: 56 };
+  const cw = W - pad.l - pad.r, ch = 160 - pad.t - pad.b;
+  const maxVal = Math.max(...buckets.map(b => b.amt), 1);
+  const ctx = canvas.getContext('2d');
+  const isDark = document.body.classList.contains('dark');
+  ctx.clearRect(0, 0, W, 160);
+
+  // Grid lines
+  ctx.strokeStyle = isDark ? '#332f2a' : '#e3ddd4'; ctx.lineWidth = 1;
+  for (let i = 0; i <= 3; i++) {
+    const y = pad.t + ch - (ch * i / 3);
+    ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(pad.l + cw, y); ctx.stroke();
+    ctx.fillStyle = isDark ? '#5e5a55' : '#a09b95';
+    ctx.font = '10px Instrument Sans'; ctx.textAlign = 'right';
+    ctx.fillText('$' + (maxVal * i / 3 / 1000 >= 1 ? (maxVal*i/3/1000).toFixed(1)+'k' : (maxVal*i/3).toFixed(0)), pad.l - 5, y + 3);
+  }
+
+  // Bars
+  const bw = cw / buckets.length;
+  const barW = bw * 0.55;
+  buckets.forEach((b, i) => {
+    const x = pad.l + i * bw + (bw - barW) / 2;
+    const h = ch * (b.amt / maxVal);
+    ctx.fillStyle = isDark ? '#5b84b8' : '#3a5f8a';
+    ctx.beginPath();
+    ctx.roundRect ? ctx.roundRect(x, pad.t + ch - h, barW, h, [3, 3, 0, 0]) : ctx.rect(x, pad.t + ch - h, barW, h);
+    ctx.fill();
+    // Value label on bar
+    if (b.amt > 0) {
+      ctx.fillStyle = isDark ? '#9e9890' : '#6b6660';
+      ctx.font = '9px Instrument Sans'; ctx.textAlign = 'center';
+      ctx.fillText(fmt(b.amt).replace('.00',''), x + barW/2, pad.t + ch - h - 3);
+    }
+    ctx.fillStyle = isDark ? '#5e5a55' : '#a09b95';
+    ctx.font = '10px Instrument Sans'; ctx.textAlign = 'center';
+    ctx.fillText(b.label, x + barW/2, 160 - pad.b + 14);
+  });
+}
+
+// ── HABITS ─────────────────────────────────────────────────────────────
+function renderHabits() {
+  document.getElementById('habitsList').innerHTML = S.habits.map(h => {
+    const done = !!S.todayDone[h.id];
+    return `<div class="habit-row">
+      <div class="check-box ${done?'on':''}" onclick="toggleHabit(${h.id})"></div>
+      <div class="habit-name ${done?'done':''}" ondblclick="renameHabit(${h.id},this)" title="Double-click to rename">${h.name}</div>
+      <div class="dots">${h.history.slice(-7).map(d=>`<div class="dot ${d?'on':''}"></div>`).join('')}</div>
+      <div class="streak-tag">${h.streak}d</div>
+      <button class="del-btn" onclick="delHabit(${h.id})">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function toggleHabit(id) {
+  S.todayDone[id] = !S.todayDone[id];
+  const h = S.habits.find(h=>h.id===id);
+  if (h) {
+    // Ensure history is exactly 7 slots
+    while (h.history.length < 7) h.history.unshift(0);
+    h.history = h.history.slice(-7);
+    // Update TODAY's slot (last index) in place — toggling multiple times stays correct
+    h.history[6] = S.todayDone[id] ? 1 : 0;
+    // Recompute streak from tail
+    let streak = 0;
+    for (let i = 6; i >= 0; i--) {
+      if (h.history[i]) streak++; else break;
+    }
+    h.streak = streak;
+  }
+  save(); renderHabits(); renderOverview();
+}
+
+function addHabit() {
+  const v = document.getElementById('habitInput').value.trim();
+  if (!v) return;
+  S.habits.push({id:Date.now(), name:v, streak:0, history:[0,0,0,0,0,0,0], addedDate: getTodayKey()});
+  document.getElementById('habitInput').value = '';
+  save(); renderHabits(); renderOverview();
+}
+
+function delHabit(id) {
+  S.habits = S.habits.filter(h=>h.id!==id);
+  delete S.todayDone[id];
+  save(); renderHabits(); renderOverview();
+}
+
+document.getElementById('habitInput').addEventListener('keydown', e => { if(e.key==='Enter') addHabit(); });
+
+// ── GOALS ──────────────────────────────────────────────────────────────
+function renderGoals() {
+  document.getElementById('goalsList').innerHTML = S.goals.map(g => {
+    const pct = Math.min(100, Math.round(g.current/g.target*100));
+    return `<div class="goal-item">
+      <div class="goal-top"><div class="goal-name" ondblclick="renameGoal(${g.id},this)" title="Double-click to rename">${g.name}</div><div class="goal-pct">${pct}%</div></div>
+      <div class="bar-bg"><div class="bar-fill" style="width:${pct}%"></div></div>
+      <div class="goal-meta"><span>${g.current}/${g.target} ${g.unit}</span><span>${g.target-g.current} to go</span></div>
+      <div class="goal-controls">
+        <button class="btn-sm" onclick="nudgeGoal(${g.id},1)">+1</button>
+        <button class="btn-sm" onclick="nudgeGoal(${g.id},5)">+5</button>
+        <button class="btn-sm" onclick="nudgeGoal(${g.id},-1)">−1</button>
+        <button class="btn-sm" style="margin-left:auto" onclick="delGoal(${g.id})">Remove</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function addGoal() {
+  const name=document.getElementById('goalName').value.trim();
+  const target=parseInt(document.getElementById('goalTarget').value);
+  const unit=document.getElementById('goalUnit').value.trim()||'units';
+  if(!name||!target) return;
+  S.goals.push({id:Date.now(),name,current:0,target,unit});
+  ['goalName','goalTarget','goalUnit'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('addGoalForm').classList.remove('open');
+  save(); renderGoals(); renderOverview();
+}
+
+function nudgeGoal(id, d) {
+  const g=S.goals.find(g=>g.id===id);
+  if(!g) return;
+  g.current=Math.max(0,Math.min(g.target,g.current+d));
+  save(); renderGoals(); renderOverview();
+}
+
+function delGoal(id) { S.goals=S.goals.filter(g=>g.id!==id); save(); renderGoals(); renderOverview(); }
+
+// ── WORKOUTS ───────────────────────────────────────────────────────────
+function renderWorkouts() {
+  const sorted = [...S.workouts].sort((a,b)=>new Date(b.date)-new Date(a.date));
+  document.getElementById('workoutLog').innerHTML = sorted.slice(0,6).map(w => `
+    <div class="workout-entry">
+      <div class="workout-header">
+        <div class="workout-type">${w.type}</div>
+        <div class="workout-date">${fmtDate(w.date)}</div>
+      </div>
+      <div class="workout-details">
+        <div class="workout-stat"><span>${w.duration}</span> min</div>
+        ${w.dist ? `<div class="workout-stat"><span>${w.dist}</span> mi</div>` : ''}
+        ${w.notes ? `<div class="workout-stat">${w.notes}</div>` : ''}
+        <button class="del-btn" style="margin-left:auto" onclick="delWorkout(${w.id})">✕</button>
+      </div>
+    </div>`).join('') || '<div style="color:var(--text3);font-size:0.84rem;padding:12px 0">No sessions yet</div>';
+}
+
+function addWorkout() {
+  const typeBase = document.getElementById('wType').value;
+  const type = typeBase === 'Custom' ? (document.getElementById('wTypeCustom')?.value.trim() || 'Custom') : typeBase;
+  const duration=parseInt(document.getElementById('wDuration').value);
+  const dist=parseFloat(document.getElementById('wDist').value)||null;
+  const notes=document.getElementById('wNotes').value.trim();
+  if(!duration || duration <= 0) { showToast('Enter a valid duration'); return; }
+  S.workouts.push({id:Date.now(),type,duration,dist,notes,date:new Date().toISOString().split('T')[0]});
+  ['wDuration','wDist','wNotes'].forEach(id=>document.getElementById(id).value='');
+  save(); renderWorkouts(); renderOverview();
+}
+
+function delWorkout(id) { S.workouts=S.workouts.filter(w=>w.id!==id); save(); renderWorkouts(); }
+
+// ── WEIGHT ─────────────────────────────────────────────────────────────
+function renderWeights() {
+  const sorted = [...S.weights].sort((a,b)=>new Date(b.date)-new Date(a.date));
+  document.getElementById('weightLog').innerHTML = sorted.map((w,i) => {
+    const prev=sorted[i+1];
+    const diff=prev ? (w.val-prev.val).toFixed(1) : null;
+    const trendClass=diff===null?'':diff>0?'trend-up':'trend-down';
+    const trendText=diff===null?'':(diff>0?`▲ ${diff}`:`▼ ${Math.abs(diff)}`);
+    return `<div class="weight-entry">
+      <div>
+        <div class="weight-val">${w.val} lbs</div>
+        <div style="font-size:0.72rem;color:var(--text3);margin-top:2px">${fmtDate(w.date)}${w.note?' · '+w.note:''}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="weight-trend ${trendClass}">${trendText}</div>
+        <button class="del-btn" onclick="delWeight(${w.id})">✕</button>
+      </div>
+    </div>`;
+  }).join('') || '<div style="color:var(--text3);font-size:0.84rem;padding:8px 0">No entries yet</div>';
+
+  // Stats
+  if (sorted.length >= 2) {
+    const first=sorted[sorted.length-1], last=sorted[0];
+    const change=(last.val-first.val).toFixed(1);
+    document.getElementById('weightStats').innerHTML = `
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;justify-content:space-between;font-size:0.82rem"><span style="color:var(--text3)">Current</span><span style="font-weight:600">${last.val} lbs</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:0.82rem"><span style="color:var(--text3)">Change</span><span style="font-weight:600;color:${change<0?'var(--accent)':'var(--red)'}">${change>0?'+':''}${change} lbs</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:0.82rem"><span style="color:var(--text3)">Lowest</span><span style="font-weight:600">${Math.min(...S.weights.map(w=>w.val))} lbs</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:0.82rem"><span style="color:var(--text3)">Entries</span><span style="font-weight:600">${S.weights.length}</span></div>
+      </div>`;
+  } else {
+    document.getElementById('weightStats').innerHTML = '<div style="color:var(--text3);font-size:0.82rem">Add at least 2 entries for stats</div>';
+  }
+}
+
+function addWeight() {
+  const val=parseFloat(document.getElementById('weightVal').value);
+  const date=document.getElementById('weightDate').value || new Date().toISOString().split('T')[0];
+  const note=document.getElementById('weightNote').value.trim();
+  if(!val || val <= 0) { showToast('Enter a valid weight above 0'); return; }
+  S.weights.push({id:Date.now(),val,date,note});
+  ['weightVal','weightNote'].forEach(id=>document.getElementById(id).value='');
+  save(); renderWeights(); renderBMI(); renderOverview();
+}
+
+function delWeight(id) { S.weights=S.weights.filter(w=>w.id!==id); save(); renderWeights(); renderBMI(); }
+
+// Set date input defaults (guard all with null checks)
+const _today = new Date().toISOString().split('T')[0];
+const _setVal = (id, val) => { const el = document.getElementById(id); if(el) el.value = val; };
+_setVal('weightDate', _today);
+_setVal('txDate', _today);
+_setVal('heightFt', S.heightFt || 5);
+_setVal('heightIn', S.heightIn !== undefined ? S.heightIn : 9);
+
+// ── FINANCE CORE ─────────────────────────────────────────────────────────
+
+// Canonical month key from offset (0 = current)
+function monthKey(offset) {
+  const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() + offset);
+  return d.toISOString().slice(0, 7);
+}
+
+// All months from earliest transaction to today
+function allMonthKeys() {
+  const keys = new Set();
+  const now = new Date();
+  keys.add(now.toISOString().slice(0, 7));
+  S.transactions.forEach(tx => { if (tx.date) keys.add(tx.date.slice(0, 7)); });
+  return [...keys].sort();
+}
+
+// Cat lookup helpers
+function catById(id) { return S.budgetCats.find(c => c.id === id) || null; }
+function catName(id) { const c = catById(id); return c ? c.name : '—'; }
+function catEmoji(id) { const c = catById(id); return c ? c.emoji : ''; }
+
+// ── ACCOUNTS ─────────────────────────────────────────────────────────────
+
+function accountBalance(accId) {
+  const acc = S.accounts.find(a => a.id === accId);
+  if (!acc) return 0;
+  let bal = acc.openingBalance || 0;
+  S.transactions.forEach(tx => {
+    if (tx.type === 'expense'  && tx.accountId   === accId) bal -= tx.amt;
+    if (tx.type === 'income'   && tx.accountId   === accId) bal += tx.amt;
+    if (tx.type === 'transfer' && tx.accountId   === accId) bal -= tx.amt;
+    if (tx.type === 'transfer' && tx.toAccountId === accId) bal += tx.amt;
+  });
+  return Math.round(bal * 100) / 100;
+}
+
+function accTypeColor(type) {
+  return type === 'credit' ? 'var(--red)' : type === 'savings' ? 'var(--blue)' : type === 'investment' ? 'var(--yellow)' : 'var(--accent)';
+}
+
+function renderAccounts() {
+  const grid  = document.getElementById('accountsGrid');
+  const list  = document.getElementById('accountsList');
+  const nwEl  = document.getElementById('netWorthSummary');
+  if (!grid) return;
+
+  grid.innerHTML = S.accounts.map(a => {
+    const bal = accountBalance(a.id);
+    const col = accTypeColor(a.type);
+    return `<div class="card" style="border-top:3px solid ${col}">
+      <div style="font-size:1.3rem;margin-bottom:4px">${a.emoji}</div>
+      <div style="font-size:0.68rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.04em">${a.type}</div>
+      <div style="font-family:'Fraunces',serif;font-size:1.55rem;font-weight:300;color:${bal < 0 ? 'var(--red)' : col};margin:4px 0;line-height:1">
+        ${bal < 0 ? '-' : ''}${fmt(Math.abs(bal))}
+      </div>
+      <div style="font-size:0.82rem;font-weight:500">${a.name}</div>
+    </div>`;
+  }).join('') || '<div style="color:var(--text3);font-size:0.84rem">No accounts yet</div>';
+
+  list.innerHTML = S.accounts.map(a => {
+    const bal = accountBalance(a.id);
+    return `<div class="habit-row">
+      <span style="font-size:1.1rem;flex-shrink:0">${a.emoji}</span>
+      <div style="flex:1">
+        <div style="font-size:0.84rem;font-weight:500">${a.name}</div>
+        <div style="font-size:0.7rem;color:var(--text3);text-transform:capitalize">${a.type}</div>
+      </div>
+      <span style="font-weight:600;color:${bal < 0 ? 'var(--red)' : 'var(--accent)'}">${bal < 0 ? '-' : ''}${fmt(Math.abs(bal))}</span>
+      <button onclick="editAccount(${a.id})" style="background:none;border:1px solid var(--border);border-radius:5px;padding:2px 7px;font-size:0.7rem;cursor:pointer;color:var(--text3);font-family:inherit;margin-right:4px" title="Edit">✎</button>
+      <button onclick="archiveAccount(${a.id})" style="background:none;border:1px solid var(--border);border-radius:5px;padding:2px 7px;font-size:0.7rem;cursor:pointer;color:var(--text3);font-family:inherit;margin-right:4px" title="Archive">📦</button>
+      <button class="del-btn" onclick="delAccount(${a.id})" title="Delete account and all transactions">✕</button>
+    </div>`;
+  }).join('') || '<div style="color:var(--text3);font-size:0.84rem;padding:8px 0">No accounts yet</div>';
+
+  renderArchivedAccounts();
+
+  const assets = S.accounts.filter(a => a.type !== 'credit').reduce((s, a) => s + Math.max(0, accountBalance(a.id)), 0);
+  const liab   = S.accounts.filter(a => a.type === 'credit').reduce((s, a) => s + Math.abs(Math.min(0, accountBalance(a.id))), 0);
+  const nw = assets - liab;
+  if (nwEl) nwEl.innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div>
+        <div class="field-label">Net Worth</div>
+        <div style="font-family:'Fraunces',serif;font-size:2.2rem;font-weight:300;color:${nw >= 0 ? 'var(--accent)' : 'var(--red)'};line-height:1">
+          ${nw < 0 ? '-' : ''}${fmt(Math.abs(nw))}
+        </div>
+      </div>
+      <div style="border-top:1px solid var(--border);padding-top:10px;display:flex;flex-direction:column;gap:7px">
+        <div style="display:flex;justify-content:space-between;font-size:0.83rem"><span style="color:var(--text3)">Assets</span><span style="font-weight:600;color:var(--accent)">${fmt(assets)}</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:0.83rem"><span style="color:var(--text3)">Liabilities</span><span style="font-weight:600;color:var(--red)">${fmt(liab)}</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:0.83rem"><span style="color:var(--text3)">Accounts</span><span style="font-weight:600">${S.accounts.length}</span></div>
+      </div>
+    </div>`;
+}
+
+function addAccount() {
+  const name  = document.getElementById('accName').value.trim();
+  const emoji = document.getElementById('accEmoji').value || '🏦';
+  const type  = document.getElementById('accType').value;
+  const balRaw = document.getElementById('accBalance').value.trim();
+  const bal   = balRaw === '' ? 0 : parseFloat(balRaw);
+  if (!name) return;
+  if (isNaN(bal)) { showToast('Opening balance must be a number'); return; }
+  S.accounts.push({ id: Date.now(), name, emoji, type, openingBalance: bal });
+  ['accName','accEmoji','accBalance'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  document.getElementById('addAccountForm').classList.remove('open');
+  save(); renderAccounts(); renderTxSelects(); renderOverview();
+}
+
+function delAccount(id) {
+  const acc = S.accounts.find(a => a.id === id);
+  if (!acc) return;
+  const snapAccounts = JSON.stringify(S.accounts);
+  const snapTx       = JSON.stringify(S.transactions);
+  const txCount = S.transactions.filter(t => t.accountId === id || t.toAccountId === id).length;
+  S.accounts     = S.accounts.filter(a => a.id !== id);
+  S.transactions = S.transactions.filter(t => t.accountId !== id && t.toAccountId !== id);
+  save(); renderAccounts(); renderArchivedAccounts(); renderTxSelects(); renderTransactions(); renderBudget(); renderSavings();
+  const msg = txCount
+    ? `${acc.emoji} ${acc.name} + ${txCount} transaction${txCount !== 1 ? 's' : ''} deleted`
+    : `${acc.emoji} ${acc.name} deleted`;
+  showToast(msg, () => {
+    S.accounts     = JSON.parse(snapAccounts);
+    S.transactions = JSON.parse(snapTx);
+    save(); renderAccounts(); renderArchivedAccounts(); renderTxSelects(); renderTransactions(); renderBudget(); renderSavings();
+    showToast('Restored');
+  });
+}
+
+function archiveAccount(id) {
+  const acc = S.accounts.find(a => a.id === id);
+  if (!acc) return;
+  const txns = S.transactions.filter(t => t.accountId === id || t.toAccountId === id);
+  const snapAccounts = JSON.stringify(S.accounts);
+  const snapTx       = JSON.stringify(S.transactions);
+  const snapArchAcc  = JSON.stringify(S.archivedAccounts);
+  const snapArchTx   = JSON.stringify(S.archivedTransactions);
+  S.archivedAccounts.push({ ...acc, archivedAt: getTodayKey() });
+  S.archivedTransactions.push(...txns.map(t => ({ ...t, _archivedAccId: id })));
+  S.accounts     = S.accounts.filter(a => a.id !== id);
+  S.transactions = S.transactions.filter(t => t.accountId !== id && t.toAccountId !== id);
+  save(); renderAccounts(); renderArchivedAccounts(); renderTxSelects(); renderTransactions(); renderBudget(); renderSavings();
+  const txCount = txns.length;
+  const msg = txCount
+    ? `${acc.emoji} ${acc.name} archived with ${txCount} transaction${txCount !== 1 ? 's' : ''}`
+    : `${acc.emoji} ${acc.name} archived`;
+  showToast(msg, () => {
+    S.accounts            = JSON.parse(snapAccounts);
+    S.transactions        = JSON.parse(snapTx);
+    S.archivedAccounts    = JSON.parse(snapArchAcc);
+    S.archivedTransactions = JSON.parse(snapArchTx);
+    save(); renderAccounts(); renderArchivedAccounts(); renderTxSelects(); renderTransactions(); renderBudget(); renderSavings();
+    showToast('Restored');
+  });
+}
+
+function unarchiveAccount(id) {
+  const acc = S.archivedAccounts.find(a => a.id === id);
+  if (!acc) return;
+  const { archivedAt, ...accData } = acc;
+  const txns = S.archivedTransactions
+    .filter(t => t._archivedAccId === id)
+    .map(({ _archivedAccId, ...t }) => t);
+  const snapArchAcc = JSON.stringify(S.archivedAccounts);
+  const snapArchTx  = JSON.stringify(S.archivedTransactions);
+  S.accounts.push(accData);
+  S.transactions.push(...txns);
+  S.archivedAccounts     = S.archivedAccounts.filter(a => a.id !== id);
+  S.archivedTransactions = S.archivedTransactions.filter(t => t._archivedAccId !== id);
+  save(); renderAccounts(); renderArchivedAccounts(); renderTxSelects(); renderTransactions(); renderBudget(); renderSavings();
+  showToast(`${acc.emoji} ${acc.name} restored`, () => {
+    S.accounts            = S.accounts.filter(a => a.id !== id);
+    S.transactions        = S.transactions.filter(t => !txns.find(tx => tx.id === t.id));
+    S.archivedAccounts    = JSON.parse(snapArchAcc);
+    S.archivedTransactions = JSON.parse(snapArchTx);
+    save(); renderAccounts(); renderArchivedAccounts(); renderTxSelects(); renderTransactions(); renderBudget(); renderSavings();
+    showToast('Re-archived');
+  });
+}
+
+function deleteArchivedAccount(id) {
+  const acc = S.archivedAccounts.find(a => a.id === id);
+  if (!acc) return;
+  const snapArchAcc = JSON.stringify(S.archivedAccounts);
+  const snapArchTx  = JSON.stringify(S.archivedTransactions);
+  const txCount = S.archivedTransactions.filter(t => t._archivedAccId === id).length;
+  S.archivedAccounts     = S.archivedAccounts.filter(a => a.id !== id);
+  S.archivedTransactions = S.archivedTransactions.filter(t => t._archivedAccId !== id);
+  save(); renderArchivedAccounts();
+  const msg = txCount
+    ? `${acc.emoji} ${acc.name} permanently deleted (+${txCount} transaction${txCount !== 1 ? 's' : ''})`
+    : `${acc.emoji} ${acc.name} permanently deleted`;
+  showToast(msg, () => {
+    S.archivedAccounts     = JSON.parse(snapArchAcc);
+    S.archivedTransactions = JSON.parse(snapArchTx);
+    save(); renderArchivedAccounts();
+    showToast('Restored');
+  });
+}
+
+function renderArchivedAccounts() {
+  const section = document.getElementById('archivedAccountsSection');
+  const list    = document.getElementById('archivedAccountsList');
+  if (!section || !list) return;
+  const archived = S.archivedAccounts || [];
+  section.style.display = archived.length ? 'block' : 'none';
+  list.innerHTML = archived.map(a => {
+    const txCount = (S.archivedTransactions || []).filter(t => t._archivedAccId === a.id).length;
+    return `<div class="habit-row" style="opacity:0.75;background:var(--surface2);border-radius:9px;padding:9px 12px;margin-bottom:7px">
+      <span style="font-size:1.1rem;flex-shrink:0">${a.emoji}</span>
+      <div style="flex:1">
+        <div style="font-size:0.84rem;font-weight:500">${a.name}</div>
+        <div style="font-size:0.7rem;color:var(--text3);text-transform:capitalize">${a.type} · ${txCount} transaction${txCount !== 1 ? 's' : ''} · archived ${fmtDate(a.archivedAt)}</div>
+      </div>
+      <button onclick="unarchiveAccount(${a.id})" style="background:none;border:1px solid var(--accent);border-radius:5px;padding:2px 8px;font-size:0.72rem;cursor:pointer;color:var(--accent);font-family:inherit;margin-right:6px">Restore</button>
+      <button class="del-btn" onclick="deleteArchivedAccount(${a.id})" title="Permanently delete">✕</button>
+    </div>`;
+  }).join('');
+}
+
+// ── TRANSACTIONS ─────────────────────────────────────────────────────────
+
+function renderTxSelects() {
+  // Account selects
+  const accOpts = S.accounts.map(a => `<option value="${a.id}">${a.emoji} ${a.name}</option>`).join('');
+  ['txAccount','txTransferTo','txFilterAcct'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (id === 'txFilterAcct') {
+      const prev = el.value;
+      el.innerHTML = '<option value="all">All Accounts</option>' +
+        S.accounts.map(a => `<option value="${a.id}">${a.emoji} ${a.name}</option>`).join('');
+      if (prev) el.value = prev;
+    } else {
+      el.innerHTML = accOpts;
+    }
+  });
+  // Category select — grouped (filtered by current type)
+  const curType = document.getElementById('txType')?.value || 'expense';
+  const txCat = document.getElementById('txCategory');
+  if (txCat) txCat.innerHTML = buildCatOptgroups(curType);
+  // Category filter select in ledger
+  const catFilter = document.getElementById('txFilterCat');
+  if (catFilter) {
+    const prev = catFilter.value;
+    catFilter.innerHTML = '<option value="all">All Categories</option>' +
+      S.budgetCats.map(c => `<option value="${c.id}">${c.emoji} ${c.name}</option>`).join('');
+    if (prev) catFilter.value = prev;
+  }
+  // Budget group select
+  refreshGroupSelect();
+}
+
+function buildCatOptgroups(typeFilter) {
+  const groups = {};
+  S.budgetCats.forEach(c => {
+    // For expense: skip income cats. For income: show all. For transfer: skip both.
+    if (typeFilter === 'expense' && c.isIncome) return;
+    if (typeFilter === 'income'  && !c.isIncome) return;
+    (groups[c.groupId] = groups[c.groupId] || []).push(c);
+  });
+  let html = '';
+  S.budgetGroups.forEach(g => {
+    const cats = groups[g.id] || [];
+    if (!cats.length) return;
+    html += `<optgroup label="${g.name}">` +
+      cats.map(c => `<option value="${c.id}">${c.emoji} ${c.name}</option>`).join('') +
+      '</optgroup>';
+  });
+  return html || '<option value="">No categories yet</option>';
+}
+
+function renderTxTypeFields() {
+  const type   = document.getElementById('txType')?.value || 'expense';
+  // Re-populate category dropdown filtered by type
+  const txCat = document.getElementById('txCategory');
+  if (txCat) txCat.innerHTML = buildCatOptgroups(type);
+  const accId  = parseInt(document.getElementById('txAccount')?.value);
+  const catId  = document.getElementById('txCategory')?.value || '';
+  const toAccId= parseInt(document.getElementById('txTransferTo')?.value);
+  const amt    = parseFloat(document.getElementById('txAmt')?.value) || 0;
+
+  const acc    = S.accounts.find(a => a.id === accId);
+  const toAcc  = S.accounts.find(a => a.id === toAccId);
+  const cat    = catById(catId);
+
+  document.getElementById('txTransferToWrap').style.display = type === 'transfer' ? 'block' : 'none';
+  document.getElementById('txCategoryWrap').style.display   = type === 'transfer' ? 'none'  : 'block';
+
+  // Journal preview
+  const preview = document.getElementById('txJournalPreview');
+  if (!preview || !acc || (!cat && type !== 'transfer')) { if (preview) preview.style.display = 'none'; return; }
+  preview.style.display = 'block';
+  const fmtAmt = fmt(amt || 0);
+  let drName, crName;
+  if (type === 'expense') {
+    drName = cat ? `${cat.emoji} ${cat.name}` : '—';
+    crName = `${acc.emoji} ${acc.name}`;
+  } else if (type === 'income') {
+    drName = `${acc.emoji} ${acc.name}`;
+    crName = cat ? `${cat.emoji} ${cat.name}` : '—';
+  } else {
+    drName = toAcc ? `${toAcc.emoji} ${toAcc.name}` : '—';
+    crName = `${acc.emoji} ${acc.name}`;
+  }
+  document.getElementById('jrnl_dr_name').textContent = drName;
+  document.getElementById('jrnl_cr_name').textContent = crName;
+  document.getElementById('jrnl_dr_amt').textContent  = fmtAmt;
+  document.getElementById('jrnl_cr_amt').textContent  = fmtAmt;
+}
+
+function renderTransactions() {
+  const el = document.getElementById('txList');
+  if (!el) return;
+  const filterType = document.getElementById('txFilterType')?.value || 'all';
+  const filterAcct = parseInt(document.getElementById('txFilterAcct')?.value) || 0;
+  const filterCat  = document.getElementById('txFilterCat')?.value  || 'all';
+  const searchQ    = (document.getElementById('txSearch')?.value || '').toLowerCase().trim();
+
+  // Sort ascending by date for running balance
+  let txs = [...S.transactions].sort((a, b) => a.date < b.date ? -1 : a.date > b.date ? 1 : a.id - b.id);
+
+  // Compute running balance per account
+  const runBal = {};
+  S.accounts.forEach(a => { runBal[a.id] = a.openingBalance || 0; });
+  txs.forEach(tx => {
+    if (tx.type === 'expense')  runBal[tx.accountId] = Math.round((runBal[tx.accountId] - tx.amt) * 100) / 100;
+    if (tx.type === 'income')   runBal[tx.accountId] = Math.round((runBal[tx.accountId] + tx.amt) * 100) / 100;
+    if (tx.type === 'transfer') {
+      runBal[tx.accountId]   = Math.round((runBal[tx.accountId]   - tx.amt) * 100) / 100;
+      runBal[tx.toAccountId] = Math.round((runBal[tx.toAccountId] + tx.amt) * 100) / 100;
+    }
+    tx._runBal = { ...runBal };
+  });
+
+  // Filter + reverse for display (newest first)
+  txs = txs.filter(tx => {
+    if (filterType !== 'all' && tx.type !== filterType) return false;
+    if (filterAcct && tx.accountId !== filterAcct && tx.toAccountId !== filterAcct) return false;
+    if (filterCat  !== 'all' && tx.catId !== filterCat) return false;
+    if (searchQ && !tx.payee?.toLowerCase().includes(searchQ) && !tx.notes?.toLowerCase().includes(searchQ)) return false;
+    return true;
+  }).reverse();
+
+  if (!txs.length) { el.innerHTML = '<div style="color:var(--text3);font-size:0.84rem;padding:14px 0">No transactions yet</div>'; return; }
+
+  const typeColor = { income: 'var(--accent)', expense: 'var(--red)', transfer: 'var(--blue)' };
+  const typeSign  = { income: '+', expense: '-', transfer: '⇄' };
+
+  el.innerHTML = `<div style="overflow-x:auto">
+    <table style="width:100%;border-collapse:collapse;font-size:0.8rem;min-width:480px">
+      <thead>
+        <tr style="border-bottom:2px solid var(--border)">
+          <th style="text-align:left;padding:6px 8px;color:var(--text3);font-weight:600;font-size:0.68rem;text-transform:uppercase;letter-spacing:0.05em">Date</th>
+          <th style="text-align:left;padding:6px 8px;color:var(--text3);font-weight:600;font-size:0.68rem;text-transform:uppercase;letter-spacing:0.05em">Payee</th>
+          <th style="text-align:left;padding:6px 8px;color:var(--text3);font-weight:600;font-size:0.68rem;text-transform:uppercase;letter-spacing:0.05em">Category</th>
+          <th style="text-align:right;padding:6px 8px;color:var(--text3);font-weight:600;font-size:0.68rem;text-transform:uppercase;letter-spacing:0.05em">Amount</th>
+          <th style="text-align:right;padding:6px 8px;color:var(--text3);font-weight:600;font-size:0.68rem;text-transform:uppercase;letter-spacing:0.05em">Balance</th>
+          <th style="padding:6px 4px;width:28px"></th>
+        </tr>
+      </thead>
+      <tbody>
+        ${txs.slice(0, 80).map(tx => {
+          const acc   = S.accounts.find(a => a.id === tx.accountId);
+          const toAcc = tx.toAccountId ? S.accounts.find(a => a.id === tx.toAccountId) : null;
+          const cat   = catById(tx.catId);
+          const col   = typeColor[tx.type] || 'var(--text)';
+          const sign  = typeSign[tx.type]  || '';
+          const bal   = tx._runBal?.[filterAcct || tx.accountId];
+          const clearedDot = tx.cleared
+            ? '<span title="Cleared" style="color:var(--accent);font-size:0.7rem">✓</span>'
+            : '<span title="Pending" style="color:var(--text3);font-size:0.7rem">○</span>';
+          return `<tr style="border-bottom:1px solid var(--border)">
+            <td style="padding:8px 8px;white-space:nowrap;color:var(--text3)"><span onclick="toggleCleared(${tx.id})" style="cursor:pointer" title="Toggle cleared">${clearedDot}</span> ${fmtDate(tx.date)}</td>
+            <td style="padding:8px 8px;font-weight:500;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+              ${tx.payee}
+              ${tx.notes ? `<div style="font-size:0.68rem;color:var(--text3);font-weight:400">${tx.notes}</div>` : ''}
+            </td>
+            <td style="padding:8px 8px;color:var(--text2)">
+              ${cat ? `${cat.emoji} ${cat.name}` : toAcc ? `→ ${toAcc.emoji} ${toAcc.name}` : '<span style="color:var(--text3)">—</span>'}
+            </td>
+            <td style="padding:8px 8px;text-align:right;font-weight:600;color:${col};white-space:nowrap">${sign}${fmt(tx.amt)}</td>
+            <td style="padding:8px 8px;text-align:right;white-space:nowrap;color:${bal < 0 ? 'var(--red)' : 'var(--text2)'}">
+              ${bal !== undefined ? (bal < 0 ? '-' : '') + fmt(Math.abs(bal)) : '—'}
+            </td>
+            <td style="padding:4px 4px;text-align:right;white-space:nowrap">
+              <button onclick="event.stopPropagation();openEditModal(${tx.id})" style="background:none;border:1px solid var(--border);border-radius:5px;padding:2px 7px;font-size:0.7rem;cursor:pointer;color:var(--text3);font-family:inherit" title="Edit">✎</button>
+            </td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>
+  </div>`;
+}
+
+function addTransaction() {
+  const type      = document.getElementById('txType').value;
+  const date      = document.getElementById('txDate').value || new Date().toISOString().split('T')[0];
+  const payee     = document.getElementById('txPayee').value.trim();
+  const amt       = parseFloat(document.getElementById('txAmt').value);
+  const accountId = parseInt(document.getElementById('txAccount').value);
+  const catId     = type !== 'transfer' ? (document.getElementById('txCategory')?.value || null) : null;
+  const toAccId   = type === 'transfer' ? parseInt(document.getElementById('txTransferTo').value) : null;
+  const notes     = document.getElementById('txNotes').value.trim();
+  if (!payee || !accountId) return;
+  if (!amt || amt <= 0) { showToast('Enter a valid amount greater than $0'); return; }
+  if (type === 'transfer' && (!toAccId || toAccId === accountId)) {
+    showToast('Please select a different destination account'); return;
+  }
+  S.transactions.push({ id: Date.now(), type, payee, amt, accountId, catId: catId || null, toAccountId: toAccId || null, date, notes, cleared: false });
+  ['txPayee','txAmt','txNotes'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  _setVal('txDate', new Date().toISOString().split('T')[0]);
+  save(); renderTransactions(); renderAccounts(); renderBudget(); renderSavings(); renderReports(); renderOverview();
+}
+
+function delTransaction(id) {
+  const tx = S.transactions.find(t => t.id === id);
+  if (!tx) return;
+  const snapshot = JSON.stringify(S.transactions);
+  S.transactions = S.transactions.filter(t => t.id !== id);
+  save(); renderTransactions(); renderAccounts(); renderBudget(); renderSavings(); renderReports();
+  showToast('Transaction deleted', () => {
+    S.transactions = JSON.parse(snapshot);
+    save(); renderTransactions(); renderAccounts(); renderBudget(); renderSavings(); renderReports();
+    showToast('Restored');
+  });
+}
+
+function toggleCleared(id) {
+  const tx = S.transactions.find(t => t.id === id);
+  if (tx) { tx.cleared = !tx.cleared; save(); renderTransactions(); }
+}
+
+// ── BUDGET ────────────────────────────────────────────────────────────────
+
+let _budgetOffset = 0;
+
+function shiftBudgetMonth(dir) {
+  _budgetOffset = dir === 0 ? 0 : _budgetOffset + dir;
+  renderBudget();
+}
+
+// Get assigned amount for catId in given month key
+function getAssigned(catId, mk) {
+  if (!S.budgetAssigned[catId]) return 0;
+  return S.budgetAssigned[catId][mk] || 0;
+}
+
+function setAssigned(catId, mk, val) {
+  if (!S.budgetAssigned[catId]) S.budgetAssigned[catId] = {};
+  S.budgetAssigned[catId][mk] = val;
+  save();
+}
+
+// Activity = total expenses for catId in month mk
+function getActivity(catId, mk) {
+  return S.transactions
+    .filter(tx => tx.type === 'expense' && tx.catId === catId && tx.date && tx.date.startsWith(mk))
+    .reduce((s, tx) => s + tx.amt, 0);
+}
+
+// Rollover: Available at end of (mk - 1 month) for catId
+function getRollover(catId, mk) {
+  // Build the earliest month we have any data for this cat
+  const assigned = S.budgetAssigned[catId] || {};
+  const assignedMonths = Object.keys(assigned).filter(k => assigned[k] > 0);
+  const activityMonths = S.transactions
+    .filter(tx => tx.type === 'expense' && tx.catId === catId && tx.date)
+    .map(tx => tx.date.slice(0, 7));
+  const allMonths = [...new Set([...assignedMonths, ...activityMonths])].sort();
+  if (!allMonths.length) return 0;
+  const earliest = allMonths[0];
+
+  // Walk forward from earliest up to (but not including) mk, accumulating balance
+  let running = 0;
+  let cur = earliest;
+  while (cur < mk) {
+    const a = getAssigned(catId, cur);
+    const act = getActivity(catId, cur);
+    running = Math.round((running + a - act) * 100) / 100;
+    // Advance one month
+    const [y, m] = cur.split('-').map(Number);
+    const next = new Date(y, m, 1); // m is already 1-based, so m = next month
+    cur = next.toISOString().slice(0, 7);
+  }
+  return running;
+}
+
+function handleAssignedEdit(e, catId, mk) {
+  const raw = parseFloat(e.target.value);
+  const val = isNaN(raw) || raw < 0 ? 0 : Math.round(raw * 100) / 100;
+  setAssigned(catId, mk, val);
+  renderBudget(); renderSavings();
+}
+
+function refreshGroupSelect() {
+  const sel = document.getElementById('newBudgetCatGroup');
+  if (!sel) return;
+  // Show all groups except Savings Goals (those are managed by savings goal creation)
+  const opts = S.budgetGroups
+    .filter(g => g.id !== 'bg_savings')
+    .map(g => `<option value="${g.id}">${g.name}</option>`).join('');
+  sel.innerHTML = opts || '<option value="">No groups yet — add one first</option>';
+}
+
+function addBudgetGroup() {
+  const name = document.getElementById('newBudgetGroupName')?.value.trim();
+  if (!name) return;
+  S.budgetGroups.push({ id: 'bg_' + Date.now(), name, collapsed: false });
+  document.getElementById('newBudgetGroupName').value = '';
+  document.getElementById('addBudgetGroupForm').classList.remove('open');
+  save(); renderBudget();
+}
+
+function addBudgetCatRow() {
+  const name  = document.getElementById('newBudgetCatName')?.value.trim();
+  const emoji = document.getElementById('newBudgetCatEmoji')?.value || '🏷';
+  const gId   = document.getElementById('newBudgetCatGroup')?.value;
+  if (!name || !gId) return;
+  if (S.budgetCats.find(c => c.name === name)) { showToast('Category already exists'); return; }
+  S.budgetCats.push({ id: 'c_' + Date.now(), groupId: gId, name, emoji, isIncome: false });
+  ['newBudgetCatName','newBudgetCatEmoji'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  document.getElementById('addBudgetCatForm').classList.remove('open');
+  save(); renderBudget(); renderTxSelects();
+}
+
+function deleteBudgetCat(catId) {
+  const cat = catById(catId);
+  if (!cat) return;
+  if (cat.savingsGoalId) { showToast('Delete the savings goal to remove this'); return; }
+  const snapCats     = JSON.stringify(S.budgetCats);
+  const snapAssigned = JSON.stringify(S.budgetAssigned);
+  S.budgetCats = S.budgetCats.filter(c => c.id !== catId);
+  delete S.budgetAssigned[catId];
+  save(); renderBudget(); renderTxSelects();
+  showToast((cat.emoji + ' ' + cat.name) + ' removed', () => {
+    S.budgetCats     = JSON.parse(snapCats);
+    S.budgetAssigned = JSON.parse(snapAssigned);
+    save(); renderBudget(); renderTxSelects();
+    showToast('Restored');
+  });
+}
+
+function deleteBudgetGroup(gId) {
+  const group = S.budgetGroups.find(g => g.id === gId);
+  if (!group) return;
+  const snapGroups   = JSON.stringify(S.budgetGroups);
+  const snapCats     = JSON.stringify(S.budgetCats);
+  const snapAssigned = JSON.stringify(S.budgetAssigned);
+  const catIds = S.budgetCats.filter(c => c.groupId === gId).map(c => c.id);
+  catIds.forEach(id => { delete S.budgetAssigned[id]; });
+  S.budgetCats   = S.budgetCats.filter(c => c.groupId !== gId);
+  S.budgetGroups = S.budgetGroups.filter(g => g.id !== gId);
+  save(); renderBudget(); renderTxSelects();
+  showToast(group.name + ' group removed', () => {
+    S.budgetGroups   = JSON.parse(snapGroups);
+    S.budgetCats     = JSON.parse(snapCats);
+    S.budgetAssigned = JSON.parse(snapAssigned);
+    save(); renderBudget(); renderTxSelects();
+    showToast('Restored');
+  });
+}
+
+function toggleBudgetGroup(gId) {
+  const g = S.budgetGroups.find(g => g.id === gId);
+  if (g) { g.collapsed = !g.collapsed; save(); renderBudget(); }
+}
+
+function renderBudget() {
+  const groupsEl = document.getElementById('budgetGroups');
+  const pillsEl  = document.getElementById('budgetPills');
+  const labelEl  = document.getElementById('budgetMonthLabel');
+  if (!groupsEl) return;
+
+  const mk        = monthKey(_budgetOffset);
+  const monthDate = new Date(mk + '-02');
+  if (labelEl) labelEl.textContent = monthDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+  // Month income from transactions
+  const monthIncome = S.transactions
+    .filter(tx => tx.type === 'income' && tx.date && tx.date.startsWith(mk))
+    .reduce((s, tx) => s + tx.amt, 0);
+
+  // Total assigned this month (expense cats only)
+  const totalAssigned = S.budgetCats
+    .filter(c => !c.isIncome)
+    .reduce((s, c) => s + getAssigned(c.id, mk), 0);
+
+  const toAssign = monthIncome - totalAssigned;
+
+  if (pillsEl) pillsEl.innerHTML = [
+    { label: 'Income',    val: monthIncome,   col: 'var(--accent)' },
+    { label: 'Assigned',  val: totalAssigned, col: toAssign < -0.005 ? 'var(--red)' : 'var(--text)' },
+    { label: 'To Assign', val: toAssign,      col: toAssign < -0.005 ? 'var(--red)' : Math.abs(toAssign) < 0.01 ? 'var(--accent)' : 'var(--blue)' },
+  ].map(p => `<div class="budget-pill">
+    <div class="budget-pill-label">${p.label}</div>
+    <div class="budget-pill-val" style="color:${p.col}">${p.val < 0 ? '-' : ''}${fmt(Math.abs(p.val))}</div>
+  </div>`).join('');
+
+  // Render groups + rows
+  groupsEl.innerHTML = S.budgetGroups.map(group => {
+    const cats = S.budgetCats.filter(c => c.groupId === group.id);
+    let gAssigned = 0, gActivity = 0, gAvail = 0;
+
+    const rowsHtml = group.collapsed ? '' : cats.map(cat => {
+      const assigned  = getAssigned(cat.id, mk);
+      const activity  = getActivity(cat.id, mk);
+      const rollover  = cat.isIncome ? 0 : getRollover(cat.id, mk);
+      const avail     = assigned + rollover - activity;
+      gAssigned += assigned; gActivity += activity; gAvail += avail;
+      const availCls  = avail > 0.005 ? 'bavail-pos' : avail < -0.005 ? 'bavail-neg' : 'bavail-zero';
+      const rollHint  = rollover !== 0 ? ` <span style="font-size:0.65rem;color:var(--text3)" title="Rolled over from last month">(${rollover > 0 ? '+' : ''}${fmt(rollover)} rollover)</span>` : '';
+      const isSavGoal = !!cat.savingsGoalId;
+      return `<div class="bcat-row">
+        <div class="bcol-cat">
+          <span style="font-size:0.95rem;flex-shrink:0">${cat.emoji}</span>
+          <span style="flex:1">${cat.name}</span>
+          ${isSavGoal ? '<span style="font-size:0.65rem;background:var(--blue-light);color:var(--blue);border-radius:3px;padding:1px 5px;flex-shrink:0">goal</span>' : ''}
+          <button class="bcat-del" onclick="deleteBudgetCat('${cat.id}')" title="Remove">✕</button>
+        </div>
+        <div class="bcol-assigned">
+          ${cat.isIncome
+            ? `<span style="color:var(--accent);font-weight:600">${activity > 0 ? '+' + fmt(activity) : '—'}</span>`
+            : `<input class="bassigned-input" type="number" step="0.01" min="0"
+                value="${assigned > 0 ? assigned.toFixed(2) : ''}" placeholder="0.00"
+                onchange="handleAssignedEdit(event,'${cat.id}','${mk}')">`}
+        </div>
+        <div class="bcol-activity">
+          <span class="bact-val">${activity > 0.005 ? '-' + fmt(activity) : '—'}</span>
+        </div>
+        <div class="bcol-available">
+          <span class="${availCls}">${Math.abs(avail) > 0.005 ? (avail < 0 ? '-' : '') + fmt(Math.abs(avail)) : '—'}${rollHint}</span>
+        </div>
+      </div>`;
+    }).join('');
+
+    if (!group.collapsed) { /* totals computed in map above */ }
+    else {
+      cats.forEach(cat => {
+        gAssigned += getAssigned(cat.id, mk);
+        gActivity += getActivity(cat.id, mk);
+        gAvail    += getAssigned(cat.id, mk) + (cat.isIncome ? 0 : getRollover(cat.id, mk)) - getActivity(cat.id, mk);
+      });
+    }
+
+    const gAvailCol = gAvail > 0.005 ? 'var(--accent)' : gAvail < -0.005 ? 'var(--red)' : 'var(--text3)';
+    return `<div>
+      <div class="bgroup-header" onclick="toggleBudgetGroup('${group.id}')">
+        <div class="bgroup-name">
+          <span style="font-size:0.7rem;display:inline-block;transform:rotate(${group.collapsed ? '-90deg' : '0'});transition:transform 0.2s">▾</span>
+          ${group.name}
+          <button onclick="event.stopPropagation();renameBudgetGroup('${group.id}')" style="opacity:0.25;background:none;border:none;cursor:pointer;font-size:0.72rem;color:var(--text3);padding:0 3px;margin-left:4px" title="Rename group">✎</button>
+          <button onclick="event.stopPropagation();deleteBudgetGroup('${group.id}')"
+            style="opacity:0.25;background:none;border:none;cursor:pointer;font-size:0.72rem;color:var(--text3);padding:0 3px;margin-left:4px" title="Delete group">✕</button>
+        </div>
+        <div class="bgroup-totals">
+          <div class="bgroup-total-cell">${gAssigned > 0.005 ? fmt(gAssigned) : '—'}</div>
+          <div class="bgroup-total-cell" style="color:var(--red)">${gActivity > 0.005 ? '-' + fmt(gActivity) : '—'}</div>
+          <div class="bgroup-total-cell" style="color:${gAvailCol}">${Math.abs(gAvail) > 0.005 ? (gAvail < 0 ? '-' : '') + fmt(Math.abs(gAvail)) : '—'}</div>
+        </div>
+      </div>
+      ${rowsHtml}
+      ${group.collapsed ? '' : `<div style="padding:6px 12px 6px 28px;border-bottom:1px solid var(--border)">
+        <button class="btn-ghost" style="font-size:0.72rem" onclick="quickAddCatToGroup('${group.id}')">+ category</button>
+      </div>`}
+    </div>`;
+  }).join('');
+
+  refreshGroupSelect();
+}
+
+function quickAddCatToGroup(gId) {
+  const form = document.getElementById('addBudgetCatForm');
+  form.classList.add('open');
+  const sel = document.getElementById('newBudgetCatGroup');
+  if (sel) sel.value = gId;
+  setTimeout(() => { form.scrollIntoView({ behavior: 'smooth', block: 'center' }); document.getElementById('newBudgetCatName')?.focus(); }, 50);
+}
+
+// ── SAVINGS ────────────────────────────────────────────────────────────────
+
+// Savings goal funded amount = sum of all assignments to its budget cat across all months
+function savingsFunded(savId) {
+  const catId = 'sav_cat_' + savId;
+  if (!S.budgetAssigned[catId]) return 0;
+  return Object.values(S.budgetAssigned[catId]).reduce((s, v) => s + v, 0);
+}
+
+function renderSavings() {
+  const active   = S.savings.filter(s => !s.archived);
+  const archived = S.savings.filter(s => s.archived);
+  const mk       = monthKey(_budgetOffset);
+
+  document.getElementById('savingsList').innerHTML = active.map(sav => {
+    const catId    = 'sav_cat_' + sav.id;
+    const funded   = savingsFunded(sav.id);
+    const pct      = sav.target > 0 ? Math.min(100, Math.round(funded / sav.target * 100)) : 0;
+    const done     = funded >= sav.target;
+    const assigned = getAssigned(catId, mk);
+    return `<div class="savings-item" style="${done ? 'border-color:var(--accent)' : ''}">
+      <div class="savings-top">
+        <div>
+          <div class="savings-name">${sav.emoji} ${sav.name}</div>
+          <div style="font-size:0.7rem;color:var(--blue);margin-top:2px">
+            Assign via Budget → Savings Goals → ${sav.emoji} ${sav.name}
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:0.78rem;color:var(--blue);font-weight:600">${pct}%</div>
+          ${assigned > 0 ? `<div style="font-size:0.68rem;color:var(--text3)">${fmt(assigned)} this mo.</div>` : ''}
+        </div>
+      </div>
+      <div class="savings-bar"><div class="savings-fill" style="width:${pct}%"></div></div>
+      <div class="savings-meta">
+        <span>${fmt(funded)} funded</span>
+        <span style="color:${done ? 'var(--accent)' : 'var(--text3)'}">
+          ${done ? '✓ Goal reached!' : fmt(sav.target - funded) + ' to go'}
+        </span>
+      </div>
+      <div style="margin-top:8px;display:flex;gap:6px">
+        ${done
+          ? `<button class="btn-sm" style="color:var(--accent);border-color:var(--accent)" onclick="archiveSav('${sav.id}')">🏆 Archive</button>`
+          : ''}
+        <button class="btn-sm" style="margin-left:auto" onclick="delSav('${sav.id}')">Remove</button>
+      </div>
+    </div>`;
+  }).join('') || '<div style="color:var(--text3);font-size:0.84rem;padding:8px 0">No active savings goals</div>';
+
+  const total       = active.reduce((s, sav) => s + savingsFunded(sav.id), 0);
+  const totalTarget = active.reduce((s, sav) => s + sav.target, 0);
+  document.getElementById('savingsOverview').innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div>
+        <div class="field-label">Total Funded</div>
+        <div style="font-family:'Fraunces',serif;font-size:2rem;font-weight:300;color:var(--blue);line-height:1">${fmt(total)}</div>
+        <div style="font-size:0.78rem;color:var(--text3);margin-top:4px">of ${fmt(totalTarget)} across ${active.length} goal${active.length !== 1 ? 's' : ''}</div>
+      </div>
+      <div style="border-top:1px solid var(--border);padding-top:10px">
+        <div style="display:flex;justify-content:space-between;font-size:0.82rem">
+          <span style="color:var(--text3)">Overall</span>
+          <span style="font-weight:600;color:var(--blue)">${totalTarget ? Math.round(total / totalTarget * 100) : 0}%</span>
+        </div>
+      </div>
+      <div style="font-size:0.75rem;color:var(--text3);border-top:1px solid var(--border);padding-top:10px">
+        💡 Fund goals by assigning money in the <strong>Budget</strong> page under "Savings Goals"
+      </div>
+    </div>`;
+
+  const archiveWrap = document.getElementById('savingsArchiveWrap');
+  const archiveEl   = document.getElementById('savingsArchive');
+  archiveWrap.style.display = archived.length ? 'block' : 'none';
+  if (archived.length) {
+    archiveEl.innerHTML = archived.map(sav => `
+      <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:9px;background:var(--surface2);margin-bottom:7px">
+        <span style="font-size:1.1rem">${sav.emoji}</span>
+        <div style="flex:1">
+          <div style="font-size:0.84rem;font-weight:500">${sav.name}</div>
+          <div style="font-size:0.71rem;color:var(--text3)">${fmt(sav.target)} goal achieved</div>
+        </div>
+        <span style="font-size:0.72rem;color:var(--accent);font-weight:600">✓</span>
+        <button class="del-btn" onclick="delSav('${sav.id}')">✕</button>
+      </div>`).join('');
+  }
+}
+
+function addSavingsGoal() {
+  const name   = document.getElementById('savName').value.trim();
+  const emoji  = document.getElementById('savEmoji').value || '💰';
+  const target = parseFloat(document.getElementById('savTarget').value);
+  if (!name || !target) return;
+  const savId = 'sav_' + Date.now();
+  const catId = 'sav_cat_' + savId;
+  S.savings.push({ id: savId, name, emoji, target, archived: false });
+  // Ensure savings group exists
+  if (!S.budgetGroups.find(g => g.id === 'bg_savings')) {
+    S.budgetGroups.push({ id: 'bg_savings', name: 'Savings Goals', collapsed: false });
+  }
+  S.budgetCats.push({ id: catId, groupId: 'bg_savings', name, emoji, isIncome: false, savingsGoalId: savId });
+  ['savName','savEmoji','savTarget'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  document.getElementById('addSavingsForm').classList.remove('open');
+  save(); renderSavings(); renderBudget(); renderTxSelects(); renderOverview();
+}
+
+function archiveSav(savId) {
+  const sav = S.savings.find(s => String(s.id) === String(savId));
+  if (sav) sav.archived = true;
+  save(); renderSavings(); renderOverview();
+}
+
+function delSav(savId) {
+  const sav = S.savings.find(s => String(s.id) === String(savId));
+  if (!sav) return;
+  const snapSavings  = JSON.stringify(S.savings);
+  const snapCats     = JSON.stringify(S.budgetCats);
+  const snapAssigned = JSON.stringify(S.budgetAssigned);
+  S.savings    = S.savings.filter(s => String(s.id) !== String(savId));
+  const catId  = 'sav_cat_' + savId;
+  S.budgetCats = S.budgetCats.filter(c => c.id !== catId);
+  delete S.budgetAssigned[catId];
+  save(); renderSavings(); renderBudget(); renderTxSelects(); renderOverview();
+  showToast(sav.name + ' removed', () => {
+    S.savings        = JSON.parse(snapSavings);
+    S.budgetCats     = JSON.parse(snapCats);
+    S.budgetAssigned = JSON.parse(snapAssigned);
+    save(); renderSavings(); renderBudget(); renderTxSelects(); renderOverview();
+    showToast('Restored');
+  });
+}
+
+
+// ── INLINE RENAME HELPERS ─────────────────────────────────────────────────
+
+function renameHabit(id, el) {
+  const h = S.habits.find(h => h.id === id);
+  if (!h) return;
+  const inp = document.createElement('input');
+  inp.value = h.name;
+  inp.className = 'inp';
+  inp.style.cssText = 'font-size:0.85rem;padding:2px 6px;height:auto;width:140px';
+  inp.maxLength = 40;
+  el.replaceWith(inp);
+  inp.focus(); inp.select();
+  const commit = () => {
+    const v = inp.value.trim();
+    if (v) h.name = v;
+    save(); renderHabits();
+  };
+  inp.addEventListener('blur', commit);
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') inp.blur(); if (e.key === 'Escape') { inp.value = h.name; inp.blur(); } });
+}
+
+function renameGoal(id, el) {
+  const g = S.goals.find(g => g.id === id);
+  if (!g) return;
+  const inp = document.createElement('input');
+  inp.value = g.name;
+  inp.className = 'inp';
+  inp.style.cssText = 'font-size:0.85rem;padding:2px 6px;height:auto;width:140px';
+  inp.maxLength = 50;
+  el.replaceWith(inp);
+  inp.focus(); inp.select();
+  const commit = () => {
+    const v = inp.value.trim();
+    if (v) g.name = v;
+    save(); renderGoals();
+  };
+  inp.addEventListener('blur', commit);
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') inp.blur(); if (e.key === 'Escape') { inp.value = g.name; inp.blur(); } });
+}
+
+function renameBudgetGroup(gId) {
+  const g = S.budgetGroups.find(g => g.id === gId);
+  if (!g || gId === 'bg_savings' || gId === 'bg_income') { showToast('This group cannot be renamed'); return; }
+  const nameEl = document.querySelector(`.bgroup-header[onclick*="${gId}"] .bgroup-name`);
+  if (!nameEl) return;
+  const inp = document.createElement('input');
+  inp.value = g.name;
+  inp.className = 'inp';
+  inp.style.cssText = 'font-size:0.82rem;padding:2px 6px;height:auto;width:140px;display:inline-block';
+  inp.maxLength = 40;
+  // Replace text node only
+  const textNode = [...nameEl.childNodes].find(n => n.nodeType === 3 && n.textContent.trim());
+  if (textNode) textNode.replaceWith(inp); else nameEl.prepend(inp);
+  inp.focus(); inp.select();
+  const commit = () => {
+    const v = inp.value.trim();
+    if (v) g.name = v;
+    save(); renderBudget();
+  };
+  inp.addEventListener('blur', commit);
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') inp.blur(); if (e.key === 'Escape') { inp.value = g.name; inp.blur(); } });
+}
+
+// Account edit modal
+let _editAccId = null;
+function editAccount(id) {
+  const acc = S.accounts.find(a => a.id === id);
+  if (!acc) return;
+  _editAccId = id;
+  const ov = document.getElementById('accEditOverlay');
+  if (!ov) return;
+  document.getElementById('editAccName').value  = acc.name;
+  document.getElementById('editAccEmoji').value = acc.emoji || '🏦';
+  document.getElementById('editAccType').value  = acc.type;
+  document.getElementById('editAccBal').value   = acc.openingBalance ?? 0;
+  ov.style.display = 'flex';
+}
+function closeAccModal() {
+  document.getElementById('accEditOverlay').style.display = 'none';
+  _editAccId = null;
+}
+function saveAccEdit() {
+  const acc = S.accounts.find(a => a.id === _editAccId);
+  if (!acc) return;
+  const name  = document.getElementById('editAccName').value.trim();
+  const emoji = document.getElementById('editAccEmoji').value || '🏦';
+  const type  = document.getElementById('editAccType').value;
+  const balRaw = document.getElementById('editAccBal').value.trim();
+  const bal   = balRaw === '' ? 0 : parseFloat(balRaw);
+  if (!name) { showToast('Name is required'); return; }
+  if (isNaN(bal)) { showToast('Opening balance must be a number'); return; }
+  acc.name = name; acc.emoji = emoji; acc.type = type; acc.openingBalance = bal;
+  save(); closeAccModal(); renderAccounts(); renderTxSelects(); renderTransactions();
+  showToast('Account updated');
+}
+
+// Grocery item edit
+function editGroceryItem(listId, itemId) {
+  const list = S.groceryLists.find(l => l.id === listId);
+  const item = list?.items.find(i => i.id === itemId);
+  if (!item) return;
+  const row = document.querySelector(`[onclick*="toggleGroceryItem('${listId}','${itemId}')"]`)?.closest('.grocery-item');
+  if (!row) return;
+  const nameEl = row.querySelector('.grocery-item-name');
+  const qtyEl  = row.querySelector('.grocery-item-qty');
+  const nameInp = document.createElement('input');
+  nameInp.value = item.name; nameInp.className = 'inp'; nameInp.style.cssText = 'font-size:0.82rem;padding:2px 6px;height:auto;flex:1;min-width:80px'; nameInp.maxLength = 50;
+  const qtyInp = document.createElement('input');
+  qtyInp.value = item.qty || ''; qtyInp.className = 'inp'; qtyInp.placeholder = 'Qty'; qtyInp.style.cssText = 'font-size:0.82rem;padding:2px 6px;height:auto;width:60px'; qtyInp.maxLength = 15;
+  if (nameEl) nameEl.replaceWith(nameInp);
+  if (qtyEl)  qtyEl.replaceWith(qtyInp);
+  nameInp.focus(); nameInp.select();
+  const commit = () => {
+    const n = nameInp.value.trim();
+    if (n) { item.name = n; item.qty = qtyInp.value.trim(); }
+    save(); renderGroceryItems();
+  };
+  [nameInp, qtyInp].forEach(inp => {
+    inp.addEventListener('blur', () => setTimeout(commit, 120));
+    inp.addEventListener('keydown', e => { if (e.key === 'Enter') inp.blur(); if (e.key === 'Escape') renderGroceryItems(); });
+  });
+}
+
+// ── GROCERY LIST ─────────────────────────────────────────────────────────
+
+function renderGrocery() {
+  const sel = document.getElementById('groceryListSelect');
+  if (!sel) return;
+  const prev = sel.value;
+  sel.innerHTML = S.groceryLists.map(l =>
+    `<option value="${l.id}">${l.emoji} ${l.name}</option>`
+  ).join('') || '<option value="">No lists yet</option>';
+  if (prev && S.groceryLists.find(l => l.id === prev)) sel.value = prev;
+  renderGroceryItems();
+}
+
+function renderGroceryItems() {
+  const listId  = document.getElementById('groceryListSelect')?.value;
+  const list    = S.groceryLists.find(l => l.id === listId);
+  const itemsEl = document.getElementById('groceryItems');
+  const emptyEl = document.getElementById('groceryEmpty');
+  const titleEl = document.getElementById('groceryListTitle');
+  const summEl  = document.getElementById('grocerySummary');
+  if (!itemsEl) return;
+
+  if (!list) {
+    itemsEl.innerHTML = '';
+    if (emptyEl) emptyEl.style.display = 'block';
+    if (summEl) summEl.innerHTML = '<div style="color:var(--text3);font-size:0.84rem">No list selected</div>';
+    return;
+  }
+
+  if (titleEl) {
+    titleEl.childNodes[0].textContent = list.emoji + ' ' + list.name + ' ';
+  }
+
+  const unchecked = list.items.filter(i => !i.checked);
+  const checked   = list.items.filter(i =>  i.checked);
+  const all       = [...unchecked, ...checked];
+
+  if (emptyEl) emptyEl.style.display = all.length ? 'none' : 'block';
+
+  itemsEl.innerHTML = all.map(item => `
+    <div class="grocery-item ${item.checked ? 'checked' : ''}">
+      <div class="grocery-check ${item.checked ? 'on' : ''}" onclick="toggleGroceryItem('${listId}','${item.id}')">
+        ${item.checked ? '✓' : ''}
+      </div>
+      <span class="grocery-item-name ${item.checked ? 'crossed' : ''}">${item.name}</span>
+      ${item.qty ? `<span class="grocery-item-qty">${item.qty}</span>` : ''}
+      <button onclick="editGroceryItem('${listId}','${item.id}')" style="background:none;border:1px solid var(--border);border-radius:5px;padding:1px 6px;font-size:0.7rem;cursor:pointer;color:var(--text3);font-family:inherit" title="Edit">✎</button>
+      <button class="del-btn" onclick="deleteGroceryItem('${listId}','${item.id}')">✕</button>
+    </div>`).join('');
+
+  if (summEl) {
+    const total = list.items.length;
+    const done  = checked.length;
+    const pct   = total ? Math.round(done / total * 100) : 0;
+    summEl.innerHTML = `
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div>
+          <div style="font-family:'Fraunces',serif;font-size:2rem;font-weight:300;color:var(--accent);line-height:1">${done}/${total}</div>
+          <div style="font-size:0.78rem;color:var(--text3);margin-top:3px">items checked off</div>
+        </div>
+        <div class="bar-bg"><div class="bar-fill" style="width:${pct}%"></div></div>
+        <div style="font-size:0.82rem;color:var(--text3)">${unchecked.length} remaining</div>
+        <div style="border-top:1px solid var(--border);padding-top:12px">
+          <div style="font-size:0.75rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px">Your Lists</div>
+          ${S.groceryLists.map(l => {
+            const lDone = l.items.filter(i => i.checked).length;
+            const lTotal = l.items.length;
+            return `<div style="display:flex;justify-content:space-between;align-items:center;font-size:0.82rem;padding:4px 0;cursor:pointer"
+              onclick="document.getElementById('groceryListSelect').value='${l.id}';renderGroceryItems()">
+              <span style="color:${l.id===listId?'var(--accent)':'var(--text2)'};font-weight:${l.id===listId?'600':'400'}">${l.emoji} ${l.name}</span>
+              <span style="color:var(--text3)">${lDone}/${lTotal}</span>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+  }
+}
+
+function addGroceryList() {
+  const name  = document.getElementById('newGroceryListName')?.value.trim();
+  const emoji = document.getElementById('newGroceryListEmoji')?.value || '🛒';
+  if (!name) return;
+  const id = 'gl_' + Date.now();
+  S.groceryLists.push({ id, name, emoji, items: [] });
+  document.getElementById('newGroceryListName').value = '';
+  document.getElementById('newGroceryListEmoji').value = '';
+  document.getElementById('addGroceryListForm').classList.remove('open');
+  // Select the new list
+  setTimeout(() => {
+    const sel = document.getElementById('groceryListSelect');
+    if (sel) { sel.value = id; }
+    renderGrocery();
+  }, 0);
+  save();
+}
+
+function deleteGroceryList() {
+  const listId = document.getElementById('groceryListSelect')?.value;
+  const list   = S.groceryLists.find(l => l.id === listId);
+  if (!list) return;
+  const snap = JSON.stringify(S.groceryLists);
+  S.groceryLists = S.groceryLists.filter(l => l.id !== listId);
+  save(); renderGrocery();
+  showToast(list.name + ' deleted', () => {
+    S.groceryLists = JSON.parse(snap);
+    save(); renderGrocery();
+    showToast('Restored');
+  });
+}
+
+function addGroceryItem() {
+  const listId = document.getElementById('groceryListSelect')?.value;
+  const list   = S.groceryLists.find(l => l.id === listId);
+  const name   = document.getElementById('newGroceryItem')?.value.trim();
+  if (!list || !name) return;
+  const qty = document.getElementById('newGroceryQty')?.value.trim() || '';
+  list.items.push({ id: 'gi_' + Date.now(), name, qty, checked: false });
+  document.getElementById('newGroceryItem').value = '';
+  document.getElementById('newGroceryQty').value  = '';
+  document.getElementById('newGroceryItem').focus();
+  save(); renderGroceryItems();
+}
+
+function toggleGroceryItem(listId, itemId) {
+  const list = S.groceryLists.find(l => l.id === listId);
+  if (!list) return;
+  const item = list.items.find(i => i.id === itemId);
+  if (item) item.checked = !item.checked;
+  save(); renderGroceryItems();
+}
+
+function deleteGroceryItem(listId, itemId) {
+  const list = S.groceryLists.find(l => l.id === listId);
+  if (!list) return;
+  const snap = JSON.stringify(list.items);
+  list.items = list.items.filter(i => i.id !== itemId);
+  save(); renderGroceryItems();
+  showToast('Item removed', () => {
+    list.items = JSON.parse(snap);
+    save(); renderGroceryItems();
+    showToast('Restored');
+  });
+}
+
+function clearCheckedGrocery() {
+  const listId = document.getElementById('groceryListSelect')?.value;
+  const list   = S.groceryLists.find(l => l.id === listId);
+  if (!list) return;
+  const snap = JSON.stringify(list.items);
+  const count = list.items.filter(i => i.checked).length;
+  if (!count) { showToast('No checked items'); return; }
+  list.items = list.items.filter(i => !i.checked);
+  save(); renderGroceryItems();
+  showToast(`${count} item${count !== 1 ? 's' : ''} cleared`, () => {
+    list.items = JSON.parse(snap);
+    save(); renderGroceryItems();
+    showToast('Restored');
+  });
+}
+
+// ── DATES ──────────────────────────────────────────────────────────────
+function renderDates() {
+  const upcoming=S.dates.filter(d=>daysBetween(d.date)>=0).sort((a,b)=>daysBetween(a.date)-daysBetween(b.date));
+  const past=S.dates.filter(d=>daysBetween(d.date)<0).sort((a,b)=>daysBetween(b.date)-daysBetween(a.date));
+
+  const renderDateItem = d => {
+    const days=daysBetween(d.date);
+    const cls=days<0?'past':days<=7?'soon':'';
+    const label=days===0?'Today':days<0?`${Math.abs(days)}d ago`:`${days}d`;
+    return `<div class="date-item">
+      <div class="date-countdown">
+        <div class="date-days ${cls}">${label}</div>
+      </div>
+      <div class="date-info">
+        <div class="date-name">${d.name}</div>
+        <div class="date-when">${fmtDate(d.date)}</div>
+      </div>
+      <div class="date-emoji">${d.emoji}</div>
+      <button class="del-btn" onclick="delDate(${d.id})">✕</button>
+    </div>`;
+  };
+
+  document.getElementById('datesList').innerHTML = upcoming.map(renderDateItem).join('') || '<div style="color:var(--text3);font-size:0.84rem;padding:8px 0">No upcoming dates</div>';
+  document.getElementById('pastDatesList').innerHTML = past.map(renderDateItem).join('') || '<div style="color:var(--text3);font-size:0.84rem;padding:8px 0">No past events</div>';
+}
+
+function addDate() {
+  const name=document.getElementById('dateName').value.trim();
+  const date=document.getElementById('dateVal').value;
+  const emoji=document.getElementById('dateEmoji').value||'📅';
+  if(!name||!date) return;
+  S.dates.push({id:Date.now(),name,date,emoji});
+  ['dateName','dateVal','dateEmoji'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('addDateForm').classList.remove('open');
+  save(); renderDates(); renderOverview();
+}
+
+function delDate(id) { S.dates=S.dates.filter(d=>d.id!==id); save(); renderDates(); }
+
+// ── READING ────────────────────────────────────────────────────────────
+let readFilter = 'all';
+
+function filterReading(btn) {
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  readFilter = btn.dataset.filter;
+  renderReading();
+}
+
+function renderReading() {
+  const items = readFilter==='all' ? S.reading : S.reading.filter(r=>r.status===readFilter);
+  document.getElementById('readingList').innerHTML = items.map(r => `
+    <div class="reading-item">
+      <div class="reading-status status-${r.status}"></div>
+      <div style="flex:1">
+        <div class="reading-title">${r.title}</div>
+        <div class="reading-author">${r.author}</div>
+      </div>
+      <div class="reading-type">${r.type}</div>
+      <select style="font-size:0.72rem;border:1px solid var(--border);border-radius:5px;padding:2px 4px;background:var(--surface2);color:var(--text);font-family:inherit;cursor:pointer;outline:none" onchange="changeReadStatus(${r.id},this.value)">
+        <option value="want" ${r.status==='want'?'selected':''}>Want to</option>
+        <option value="reading" ${r.status==='reading'?'selected':''}>Reading</option>
+        <option value="done" ${r.status==='done'?'selected':''}>Done</option>
+      </select>
+      <button class="del-btn" onclick="delReading(${r.id})">✕</button>
+    </div>`).join('') || '<div style="color:var(--text3);font-size:0.84rem;padding:8px 0">Nothing here yet</div>';
+}
+
+function changeReadStatus(id, status) {
+  const r=S.reading.find(r=>r.id===id);
+  if(r) r.status=status;
+  save(); renderReading(); renderOverview();
+}
+
+function addReading() {
+  const title=document.getElementById('readTitle').value.trim();
+  const author=document.getElementById('readAuthor').value.trim();
+  const type=document.getElementById('readType').value;
+  const status=document.getElementById('readStatus').value;
+  if(!title) return;
+  S.reading.push({id:Date.now(),title,author,type,status});
+  ['readTitle','readAuthor'].forEach(id=>document.getElementById(id).value='');
+  save(); renderReading(); renderOverview();
+}
+
+function delReading(id) { S.reading=S.reading.filter(r=>r.id!==id); save(); renderReading(); }
+
+// ── NOTES ──────────────────────────────────────────────────────────────
+function renderNotes() {
+  document.getElementById('notesArea').value = S.notes;
+}
+
+let noteTimer;
+document.getElementById('notesArea').addEventListener('input', function() {
+  S.notes = this.value;
+  clearTimeout(noteTimer);
+  noteTimer = setTimeout(() => {
+    save();
+    document.getElementById('notesSaved').textContent = 'Saved ✓';
+    setTimeout(()=>document.getElementById('notesSaved').textContent='Auto-saves as you type', 2000);
+  }, 600);
+});
+
+
+// ── INIT ───────────────────────────────────────────────────────────────
+renderTxSelects();
+renderAll();
+
+// Auto-refresh at midnight — if the app is left open overnight
+setInterval(() => {
+  const k = getTodayKey();
+  if (S.lastDate !== k) {
+    S.habits.forEach(h => {
+      while (h.history.length < 7) h.history.unshift(0);
+      h.history = [...h.history.slice(-6), 0]; // push 0 for new day
+    });
+    S.todayDone = {};
+    S.lastDate = k;
+    save(); renderHabits(); renderOverview();
+  }
+}, 60000);
+
+// ── MOBILE NAV ─────────────────────────────────────────────────────────
+function mobileNav(el) {
+  const page = el.dataset.page;
+  if (!page) return;
+  document.querySelectorAll('.mob-nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelectorAll('.mob-drawer-item').forEach(n => n.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const sideNav = document.querySelector(`.nav-item[data-page="${page}"]`);
+  if (sideNav) sideNav.classList.add('active');
+  document.getElementById('page-' + page).classList.add('active');
+  renderAll();
+  window.scrollTo(0, 0);
+}
+
+function openDrawer() {
+  document.getElementById('mobDrawer').classList.add('open');
+  document.getElementById('mobOverlay').classList.add('open');
+}
+
+function closeDrawer() {
+  document.getElementById('mobDrawer').classList.remove('open');
+  document.getElementById('mobOverlay').classList.remove('open');
+}
+
+
+
+</script>
+
+<!-- MOBILE OVERLAY -->
+<div class="mob-overlay" id="mobOverlay" onclick="closeDrawer()"></div>
+
+<!-- MOBILE BOTTOM NAV -->
+<nav class="mobile-nav">
+  <div class="mobile-nav-items">
+    <div class="mob-nav-item active" data-page="overview" onclick="mobileNav(this)">
+      <div class="mob-icon">⊞</div><div class="mob-label">Home</div>
+    </div>
+    <div class="mob-nav-item" data-page="habits" onclick="mobileNav(this)">
+      <div class="mob-icon">✦</div><div class="mob-label">Habits</div>
+    </div>
+    <div class="mob-nav-item" data-page="accounts" onclick="mobileNav(this)">
+      <div class="mob-icon">◈</div><div class="mob-label">Accounts</div>
+    </div>
+    <div class="mob-nav-item" data-page="workout" onclick="mobileNav(this)">
+      <div class="mob-icon">◈</div><div class="mob-label">Fitness</div>
+    </div>
+    <div class="mob-nav-item" onclick="openDrawer()">
+      <div class="mob-icon">···</div><div class="mob-label">More</div>
+    </div>
+  </div>
+</nav>
+
+<!-- MOBILE DRAWER -->
+<div class="mob-drawer" id="mobDrawer">
+  <div class="mob-drawer-handle"></div>
+  <div class="mob-drawer-grid">
+    <div class="mob-drawer-item" data-page="transactions" onclick="mobileNav(this);closeDrawer()">
+      <div class="d-icon">↕</div><div class="d-label">Transactions</div>
+    </div>
+    <div class="mob-drawer-item" data-page="budget" onclick="mobileNav(this);closeDrawer()">
+      <div class="d-icon">▦</div><div class="d-label">Budget</div>
+    </div>
+    <div class="mob-drawer-item" data-page="savings" onclick="mobileNav(this);closeDrawer()">
+      <div class="d-icon">◬</div><div class="d-label">Savings</div>
+    </div>
+    <div class="mob-drawer-item" data-page="reports" onclick="mobileNav(this);closeDrawer()">
+      <div class="d-icon">⊞</div><div class="d-label">Reports</div>
+    </div>
+    <div class="mob-drawer-item" data-page="weight" onclick="mobileNav(this);closeDrawer()">
+      <div class="d-icon">◉</div><div class="d-label">Body Stats</div>
+    </div>
+    <div class="mob-drawer-item" data-page="grocery" onclick="mobileNav(this);closeDrawer()">
+      <span>🛒</span> Grocery List
+    </div>
+    <div class="mob-drawer-item" data-page="dates" onclick="mobileNav(this);closeDrawer()">
+      <div class="d-icon">◎</div><div class="d-label">Dates</div>
+    </div>
+    <div class="mob-drawer-item" data-page="reading" onclick="mobileNav(this);closeDrawer()">
+      <div class="d-icon">◫</div><div class="d-label">Reading</div>
+    </div>
+    <div class="mob-drawer-item" data-page="notes" onclick="mobileNav(this);closeDrawer()">
+      <div class="d-icon">⊡</div><div class="d-label">Notes</div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
